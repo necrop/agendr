@@ -1,0 +1,86 @@
+{% extends "gel2/editor/edit_frame.html" %}
+
+{% block forminputs %}
+	<div class="control-group">
+		<label class="control-label">Lemma:</label>
+		<div class="controls">
+			<input type="text" name="label" value="{{ record.label }}"/>
+		</div>
+	</div>
+	<div class="control-group">
+		<label class="control-label">UK soundfile:</label>
+		<div class="controls">
+			<input type="text" name="soundfile_uk"{% if record.soundfile_uk %} value="{{ record.soundfile_uk }}"{% endif %}/>
+		</div>
+	</div>
+	<div class="control-group">
+		<label class="control-label">US soundfile:</label>
+		<div class="controls">
+			<input type="text" name="soundfile_us"{% if record.soundfile_us %} value="{{ record.soundfile_us }}"{% endif %}/>
+		</div>
+	</div>
+
+	{% if action == 'edit' %}
+		<div class="control-group">
+			<label class="control-label"><b>Links to external resources</b></label>
+		</div>
+		{% for r in form.current_resources %}
+		<div class="control-group">
+			<label class="control-label">{{ r.target_resource.label }}:</label>
+			<div class="controls">
+				<input type="text" name="link_{{ r.id }}_entryid" {% if r.target_id %}value="{{ r.target_id }}"{% endif %} placeholder="entry ID"/>
+				<input type="text" name="link_{{ r.id }}_nodeid" {% if r.target_node %}value="{{ r.target_node }}"{% endif %} placeholder="node ID (optional)"/>
+			</div>
+		</div>
+		{% endfor %}
+
+		<div class="control-group">
+			<label class="control-label"><b>Add link</b></label>
+		</div>
+		<div class="control-group">
+			<label class="control-label"></label>
+			<div class="controls">
+				<select name="new_link_resourceid">
+					{% for r in form.known_resources %}
+						<option value="{{ r.id }}">{{ r.label }}</option>
+					{% endfor %}
+				</select>
+				<input type="text" name="new_link_entryid" placeholder="entry ID"/>
+				<input type="text" name="new_link_nodeid" placeholder="node ID (optional)"/>
+			</div>
+		</div>
+	{% endif %}
+
+	<div class="control-group">
+		<label class="control-label"><b>Topics</b></label>
+	</div>
+	<div class="control-group">
+		<label class="control-label"></label>
+		<div class="controls">
+			{% if action == 'edit' %}
+				<ul class="inline">
+					{% for t in record.topic_list %}
+						<li>{{ t.breadcrumb }}</li>
+					{% endfor %}
+				</ul>
+			{% endif %}
+			<div class="scroll_checkboxes">
+				<table class="table-striped">
+				<tbody>
+					{% for t in form.topics %}
+						<tr>
+							<td><input type="checkbox" name="topic_{{ t.id }}"{% if t.selected %} checked="checked"{% endif %}/>&nbsp;</td> 
+							<td>{{ t.indented }}</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+
+	{% if action == 'add' %}
+		{% include 'gel2/includes/core_wordclass_form.html' %}
+	{% endif %}
+
+{% endblock %}

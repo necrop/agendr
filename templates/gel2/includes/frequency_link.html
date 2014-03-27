@@ -1,0 +1,11 @@
+{% load gel2_extras %}
+Mod. frequency:
+{% if obj.mod_frequency|is_none %}
+	undefined
+{% else %}
+	{{ obj.mod_frequency|significantDigits:"2" }} per million &nbsp;&nbsp;
+	<a href="#" class="chartModalSwitch" level="{{ obj.level }}" objectid="{{ obj.id }}" data-content="Click to view frequency chart" rel="popover" data-toggle="popover">
+		<i class="icon-picture"></i>
+	</a>
+{% endif %}
+

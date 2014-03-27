@@ -1,0 +1,44 @@
+{% extends "gel2/editor/edit_frame.html" %}
+
+{% block forminputs %}
+<div class="control-group">
+	<label class="control-label">Short label:</label>
+	<div class="controls">
+		<input type="text" name="label" value="{{ record.label }}"/>
+		{% include 'gel2/includes/q_popover.html' with text="Initialism or similar, e.g. 'OED'" %}
+	</div>
+</div>
+<div class="control-group">
+	<label class="control-label">Full title:</label>
+	<div class="controls">
+		<input type="text" class="input-xxlarge" name="title" value="{{ record.title }}"/>
+	</div>
+</div>
+<div class="control-group">
+	<label class="control-label">Homepage:</label>
+	<div class="controls">
+		<input type="text" class="input-xlarge" name="homepage" value="{{ record.homepage }}"/>
+		{% include 'gel2/includes/q_popover.html' with text="URL of the resource's homepage, e.g. ‘http://www.oed.com’" %}
+	</div>
+</div>
+<div class="control-group">
+	<label class="control-label">Entry-link template:</label>
+	<div class="controls">
+		<input type="text" class="input-xxlarge" name="url_template_entry" value="{{ record.url_template_entry }}"/>
+		{% include 'gel2/includes/q_popover.html' with text="URL to an entry, used to construct links. Put '{{ENTRYID}}' for the entry ID, e.g. 'http://www.oed.com/view/Entry/{{ENTRYID}}'" %}
+	</div>
+</div>
+<div class="control-group">
+	<label class="control-label">Node-link template:</label>
+	<div class="controls">
+		<input type="text" class="input-xxlarge" name="url_template_node" value="{{ record.url_template_node }}"/>
+		{% include 'gel2/includes/q_popover.html' with text="URL to a node within an entry, used to construct links. Put '{{ENTRYID}}' for the entry ID and '{{NODEID}}' for the node ID, e.g. 'http://www.oed.com/view/Entry/{{ENTRYID}}#eid{{NODEID}}'" %}
+	</div>
+</div>
+<div class="control-group">
+	<label class="control-label">Comment (optional):</label>
+	<div class="controls">
+		<input type="text" class="input-xxlarge" name="comment" {% if record.comment %}value="{{ record.comment }}{% endif %}"/>
+	</div>
+</div>
+{% endblock %}

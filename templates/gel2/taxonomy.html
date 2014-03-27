@@ -1,0 +1,149 @@
+{% extends "gel2/base.html" %}
+
+{% block page_title %}
+taxonomy
+{% endblock %}
+
+{% block pagecontent %}
+	<div class="hero-unit subhero">
+		<h2>Topic taxonomy</h2>
+	</div>
+	<table class="table table-bordered table-hover">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Level</th>
+				<th>Edit</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for t in topics %}
+				<tr>
+					<td>
+						<span style="font-size: {% if t.level == 1 %}1.8{% else %}{% if t.level == 2 %}1.4{% else %}1{% endif %}{% endif %}em;">
+							<a href="{% url 'gel_results' lemma='a-zzz' %}?topic={{ t.id }}">{{ t.indented }}</a>
+						</span>
+						{% if t.description %}
+							{% include 'gel2/includes/q_popover.html' with text=t.description %}
+						{% endif %}
+					</td>
+					<td>
+						{{ t.level }}
+					</td>
+					<td class="buttonContainer">
+						<i class="icon-cog"></i>
+						<div class="btn-group hoverButtons" nodeId="{{ t.id }}" nodeName="{{ t.name }}" nodeDescription="{% if t.description %}{{ t.description }}{% endif %}">
+							<a href="#" class="btn btn-small btn-primary nodeEdit" action="edit"><i class="icon-wrench icon-white"></i> edit</a>
+							<a href="#" class="btn btn-small btn-warning nodeEdit" action="move"><i class="icon-random icon-white"></i> move</a>
+							<a href="#" class="btn btn-small btn-success nodeEdit" action="add"><i class="icon-plus icon-white"></i> add child</a>
+							{% if t.is_leaf %}
+								<a href="#" class="btn btn-small btn-danger nodeEdit" action="delete"><i class="icon-trash icon-white"></i> delete</a>
+							{% endif %}
+						</div>
+					</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+{% endblock %}
+
+
+{% block hidden_elements %}
+	<div class="modal hide" id="editModal">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="icon-remove"></i></button>
+			<h3 id="editModalTitle"></h3>
+		</div>
+		<div class="modal-body">
+			<form class="form-horizontal" action="{% url 'gel_taxonomyedit' %}" method="post">
+				{% csrf_token %}
+				<div id="editModalEdit">
+					<div class="control-group">
+						<label class="control-label" for="targetid">Name (required):</label>
+						<div class="controls">
+							<input type="text" name="name" id="modalInputName" value=""/>
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label" for="targetid">Description (optional):</label>
+						<div class="controls">
+							<input type="text" name="description" id="modalInputDescription" value=""/>
+						</div>
+					</div>
+				</div>
+				<div id="editModalMove">
+					<div class="control-group">
+						<label class="control-label" for="targetid">Move to:</label>
+						<div class="controls">
+							<select name="parent">
+								<option value="root">[root]</option>
+								{% for t in topics %}
+									<option value="{{ t.id }}">{{ t.indented }}</option>
+								{% endfor %}
+							</select>
+						</div>
+					</div>
+				</div>
+				<div id="editModalAdd">
+					<div class="control-group">
+						<label class="control-label" for="targetid">Name (required):</label>
+						<div class="controls">
+							<input type="text" name="newName" value=""/>
+						</div>
+					</div>
+					<div class="control-group">
+						<label class="control-label" for="targetid">Description (optional):</label>
+						<div class="controls">
+							<input type="text" name="newDescription" value=""/>
+						</div>
+					</div>
+				</div>
+				<div id="editModalDelete">
+					<div>Are you sure you want to delete this node? The node will be removed from the taxonomy, and the topic will be removed from all entry records.</div>
+					<div>This action cannot be undone.</div>
+					<div>&nbsp;</div>
+				</div>
+				<input type="hidden" name="id" id="modalInputNodeid" value=""/>
+				<input type="hidden" name="action" id="modalInputAction" value=""/>
+				<div class="control-group">
+					<div class="controls">
+						<div class="btn-group">
+							<button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Cancel</button>
+							<button class="btn btn-danger" type="submit">Submit</button>
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
+		<div class="modal-footer">
+			<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+		</div>
+	</div>
+{% endblock %}
+
+
+{% block extrascript %}
+	$('a.nodeEdit').click( function(event) {
+		var action=$(this).attr('action');
+		var nodeid=$(this).parent().attr('nodeId');
+		var name=$(this).parent().attr('nodeName');
+		var description=$(this).parent().attr('nodeDescription');
+		$('h3#editModalTitle').text(name + ": " + action)
+		$('#modalInputName').attr('value', name)
+		$('#modalInputDescription').attr('value', description)
+		$('#modalInputNodeid').attr('value', nodeid)
+		$('#modalInputAction').attr('value', action)
+
+		$('#editModalEdit').hide();
+		$('#editModalMove').hide();
+		$('#editModalAdd').hide();
+		$('#editModalDelete').hide();
+		if (action == 'delete') { $('#editModalDelete').show(); }
+		if (action == 'edit') { $('#editModalEdit').show(); }
+		if (action == 'move') { $('#editModalMove').show(); }
+		if (action == 'add') { $('#editModalAdd').show(); }
+
+		$('#editModal').modal('show');
+		event.preventDefault() ;
+	}) ;
+{% endblock %}

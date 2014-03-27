@@ -1,0 +1,17 @@
+{% extends "gel2/info/info_frame.html" %}
+
+{% block header %}Technical information{% endblock %}
+
+{% block infotext %}
+<p>
+	The GEL2 prototype uses the following technologies:
+	<ul>
+		<li>Database: <a target="ext" href="http://www.mysql.com/">MySQL</a></li>
+		<li>Web framework: <a target="ext" href="https://www.djangoproject.com/">Django 1.5</a></li>
+		<li>Asynchronous task management (import jobs, etc.): <a target="ext" href="http://www.celeryproject.org/">Celery</a></li>
+		<li>HTML/CSS: <a target="ext" href="http://twitter.github.com/bootstrap/">Twitter Bootstrap</a></li>
+		<li>Frequency charts: <a target="ext" href="http://matplotlib.org/">matplotlib</a></li>
+		<li>Frequency data is derived from the <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html" target="ext">Google Ngrams</a> corpus.</li>
+	</ul>
+</p>
+{% endblock %}

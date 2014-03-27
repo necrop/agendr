@@ -1,0 +1,20 @@
+{% extends "gel2/info/info_frame.html" %}
+
+{% block header %}About{% endblock %}
+
+{% block infotext %}
+<p>
+	The Global English Lexicon, version 2 (GEL2) is intended as a proof of concept for the Oxford Language Hub (OLH): a centralized resource for information about language across the range of OUP English monolingual dictionaries, bilingual dictionaries, thesauri, and other reference works.
+</p>
+<p>
+	GEL2 will constitute a shared repository of common information such as morphology, wordclass, core semantics, and frequency. It will serve a number of purposes:
+	<ol>
+		<li>It will provide a single repository for language information. All information  which is usually  duplicated in multiple dictionary texts will only exist once. For example, structured morphological and inflectional data can be centralized, deduplicated, and normalized.</li>
+		<li>By providing a central language hub which integrates the data of multiple dictionaries, GEL2 will effectively obviate the need to link individual dictionaries to each other. Dictionary-to-dictionary correspondences may be derived from the fact that corresponding lemmas are linked to the same entity in GEL2. This principle may be extended to provide an interface for linking to other resources such as reference works, content licensed through GLS, the Oxford Index, the Metadata Hub, Corpora, etc.</li>
+		<li>GEL2 will serve as an integrated list of lemmas and types, which may be used e.g. to handle and redirect query terms from the open web or from within dictionary lookup.</li>
+		<li>GEL2 may provide a standard for connecting OUP’s lexical resources to third-party data sets, and may in turn provide a public interface for third-party projects to reference OUP data.</li>
+		<li>By establishing an integrated language resource, it will enable the automated extraction of any combination of lexical information currently distributed across discrete dictionary databases. This will give a more cost- and time-efficient means to provide customized data to users, and will strengthen OUP's role as a provider of lexical services rather than as a product-driven business.</li>
+		<li>As well as supporting lexicography for human reader, GEL2 will support the generation of well-structured, formalized and semantically rich data sets for computational purposes. This plays an important role for business-to-business licensing.</li>
+	</ol>
+</p>
+{% endblock %}

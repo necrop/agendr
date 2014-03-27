@@ -1,0 +1,117 @@
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>HT distribution: {% block page_title %}{% endblock %}</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="">
+		<meta name="author" content="">
+
+		<link href="/static/common/bootstrap/css/bootstrap.css" rel="stylesheet">
+		<link href="/static/common/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+		<link href="/static/htdistribution/css/basestyle.css" rel="stylesheet">
+		{% block extralinks %}
+		{% endblock %}
+		<style type="text/css">
+			{% block extrastyle %}
+			{% endblock %}
+		</style>
+
+		<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+		<!--[if lt IE 9]>
+			<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="navbar navbar-inverse navbar-fixed-top">
+			<div class="navbar-inner">
+				<div class="container">
+					<button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="brand" href="{% url 'htdistribution_home' %}">HT Distribution</a>
+					<div class="nav-collapse collapse">
+						<ul class="nav">
+							<li><a href="{% url 'htdistribution_home' %}">Home</a></li>
+							<li class="dropdown">
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown">Base sets <b class="caret"></b></a>
+								<ul class="dropdown-menu">
+									<li><a href="{% url 'htdistribution_list' setname='author' %}">Authors</a></li>
+									<li><a href="{% url 'htdistribution_list' setname='language' %}">Languages</a></li>
+									<li><a href="{% url 'htdistribution_list' setname='compound' %}">Compounds</a></li>
+								</ul>
+							</li>
+							<li class="dropdown">
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown">Collections <b class="caret"></b></a>
+								<ul class="dropdown-menu">
+									{% if collections %}
+										{% for c in collections %}
+											<li><a href="{{ c.get_absolute_url }}">{{ c.label }}</a></li>
+										{% endfor %}
+										<li class="divider"></li>
+										<li><a href="{% url 'htdistribution_collections' %}">Manage collections</a></li>
+									{% else %}
+										<li><a>[No collections defined]</a></li>
+									{% endif %}
+								</ul>
+							</li>
+							<li class="dropdown">
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown">More <b class="caret"></b></a>
+								<ul class="dropdown-menu">
+									<li><a href="{% url 'htdistribution_taxonomy' %}">Taxonomy</a></li>
+									<li><a href="{% url 'htdistribution_collections' %}">Manage collections</a></li>
+								</ul>
+							</li>
+							<li><a href="{% url 'htdistribution_info' page='help' %}">Help</a></li>
+						</ul>
+						<form class="navbar-form pull-right" action="{% url 'htdistribution_submitsearch' %}" method="post">
+							{% csrf_token %}
+							<input class="span2" type="text" name="query" value=""/>
+							<button type="submit" class="btn btn-primary" title="quick search">
+								<i class="icon-search icon-white"></i>
+							</button>
+						</form>
+					</div><!--/.nav-collapse -->
+				</div>
+			</div>
+		</div>
+
+		<div class="container">
+			{% block pagecontent %}
+			{% endblock %}
+
+
+			<div class="row">
+			</div>
+			<hr/>
+			<footer>
+				<p>HT Distribution</p>
+			</footer>
+
+		</div> <!-- /container -->
+
+		<!-- hidden_elements: HTML for modals, etc., goes here -->
+		{% block hidden_elements %}
+		{% endblock %}
+		<!-- /hidden_elements -->
+
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script src="/static/common/bootstrap/js/bootstrap.min.js"></script>
+		<script src="/static/common/js/jquery.fullscreen.js"></script>
+		<script>
+			$(document).ready( function() {
+
+				/* popovers */
+				$("a[rel='popover']").popover({trigger: 'hover', placement: 'right'});
+
+				/* any page-specific scripts go here */
+				{% block extrascript %}
+				{% endblock %}
+			});
+		</script>
+	</body>
+</html>

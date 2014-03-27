@@ -1,0 +1,414 @@
+{% extends "gel2/info/help_frame.html" %}
+
+{% block header_title %}
+Help
+{% endblock %}
+
+{% block navlist %}
+	<li><a href="#datastructure">Data structure</a></li>
+	<li><a href="#search">Search</a></li>
+	<li><a href="#editing">Editing records</a></li>
+	<li><a href="#creating">Creating new records</a></li>
+	<li><a href="#deleting">Deleting records</a></li>
+	<li><a href="#merging">Merging records</a></li>
+	<li><a href="#custom">Custom fields</a></li>
+	<li><a href="#datestamps">Datestamps</a></li>
+	<li><a href="#links">Link objects</a></li>
+	<li><a href="#resources">Resources</a></li>
+	<li><a href="#frequency">Frequency data</a></li>
+	<li><a href="#topics">Topics</a></li>
+	<li><a href="#importing">Importing new content</a></li>
+	<li><a href="#api">API</a></li>
+	<li><a href="#validation">Validation checks</a></li>
+{% endblock %}
+
+{% block textcontent %}
+	<div class="well" id="datastructure">
+	<h3>Data structure</h3>
+	<p>
+		The GEL2 data model has three main record types, which form a hierarchical relationship:
+		<ul>
+			<li><strong>Entry</strong>. The primary unit for search, display, etc. Each Entry record represent a single lemma.</li>
+			<li><strong>Wordclass</strong>. A branch of an Entry representing a single wordclass. For example, the Entry record for <em>impact</em> contains Wordclass records for <em>noun</em> and <em>verb</em>. Each Entry record contains one or more Wordclass records.</li>
+			<li><strong>Type</strong>. A branch of a Wordclass representing a single type (wordform+p.o.s.). For example, the Wordclass record for <em>impact_verb</em> contains Type records for <em>impact_VB, impacts_VBZ, impacting_VBG, impacted_VBD</em>, and <em>impacted_VBN</em>. Each Wordclass record contains one or more Type records.</li>
+		</ul>
+	</p>
+	<p>
+		Entry, Wordclass, and Type records each have a mandatory set of core fields, plus a set of zero or more 'custom' fields which can be defined by the user (see <a href="#custom">Custom fields</a>). All fields may be edited (see <a href="#editing">Editing records</a>). Any record may be created, edited, deleted by the user.
+	</p>
+
+	<h4>Core fields</h4>
+	<p>
+		At present, the core fields (built into the database tables) are as follows:
+		<ul>
+			<li>
+				Entry record:
+				<ul>
+					<li>Lemma</li>
+					<li>Topics [multiple values]</li>
+					<li>Soundfile_uk</li>
+					<li>Soundfile_us</li>
+					<li>Links to entries in external resources [multiple values]; see <a href="#links">Link objects</a></li>
+				</ul>
+			</li>
+			<li>
+				Wordclass record:
+				<ul>
+					<li>Wordclass (noun, verb, etc.)</li>
+					<li>Definition</li>
+					<li>Status (obsolete/current)</li>
+				</ul>
+			</li>
+			<li>
+				Type record:
+				<ul>
+					<li>Wordform</li>
+					<li>Part of speech (NN, NNS, VB, VBZ, etc.)</li>
+					<li>Variant status (standard spelling/US spelling/variant spelling)</li>
+				</ul>
+			</li>
+		</ul>
+	</p>
+	<p>
+		More fields can be added at any time: see <a href="#custom">Custom fields</a>.
+	</p>
+
+	<h4>Hierarchy</h4>
+	<p>
+		Each Type record is linked to its parent Wordclass record. Each Wordclass record is linked in turn to its parent Entry record.
+	</p>
+	<p>
+		In addition, a Type record may be linked to a Frequency Table; see <a href="#frequency">Frequency data</a>.
+	</p>
+
+	<h4>Definition</h4>
+	<p>
+		Each wordclass has a definition field. (For some entries, e.g. those derived from undefined subentries, the definition field may be empty.) The definition of the first wordclass in an entry is taken to serve as the entry's definition.
+	</p>
+	<p>
+		Definitions are intended as short indicators to assist in disambiguation, and are limited to 60 characters. Definitions longer than 60 characters are truncated at the 60th character.
+	</p>
+	</div>
+
+
+	<div class="well" id="search">
+	<h3>Search</h3>
+	<p>
+		For quick lemma-based search, use the search box in the top right. For more filters, use the <a href="{% url 'gel_search' %}">Advanced search</a> form. In both cases, you can specify a single lemma (e.g. 'knight'), a wildcarded lemma (e.g. 'kn*'), or a range (hyphen-separated, e.g. 'kn-knozz'). All lemma queries are case-, space-, and diacritic-insensitive. Note that lemma queries search the lemma values of Entry records, not the inflected or variant wordforms stored in Type records.
+	</p>
+	<p>
+		<a href="{% url 'gel_search' %}">Advanced search</a> provides a number of additional filters:
+		<ul>
+			<li><strong>Wordclass</strong>: filter for entries with a given wordclass, e.g. entries with an 'adjective' wordclass. (Reversed by checking the 'reverse' box, e.g. to return all entries <em>except</em> those with an 'adjective' wordclass.)</li>
+			<li><strong>Linked to</strong>: filter for entries linked to a given external resource, e.g. entries linked to NOAD. (Reversed by checking the 'reverse' box, e.g. to return all entries <em>except</em> those linked to NOAD.)</li>
+			<li><strong>Status</strong>: filter for entries identified as obsolete or current.</li>
+			<li><strong>Topic</strong>: filter for entries on a given branch of the topic taxonomy; see <a href="#topics">Topics</a>.</li>
+			<li><strong>Created/edited</strong>: filter for entries created or last edited within a certain time period; see <a href="#datestamps">Datestamps</a>.</li>
+		</ul>
+	</p>
+	<p>
+		If the 'lemma' field is left blank, the search engine interprets this as 'a-zzz' (i.e. returns all entries in the database).
+	</p>
+	<p>
+		Recent searches are stored in the 'History' tab in the top navigation.
+	</p>
+	</div>
+
+
+	<div class="well" id="editing">
+	<h3>Editing records</h3>
+	<p>
+		To display a record in full, click the entry headword in the results list. The entry display shows the hierarchy of entry, wordclasses, and types, with values of all core and custom fields displayed for each level.
+	</p>
+	<p>
+		To edit a record, hover over the <i class="icon-cog"></i> symbol to display the button set. Click the blue 'edit' button attached to a record to edit the relevant information. 
+	</p>
+
+	<h4>Editing links</h4>
+	<p>
+		Links to external resources can be created/edited/deleted through the 'edit entry' form. The form lists all registered resources (see <a href="#resources">Resources</a>). To delete a link, clear the entry ID and node ID fields for the resource in question. To add a link, insert a value in the entry ID field for the resource in question. 
+	</p>
+
+	<h4>Editing frequency data</h4>
+	<p>
+		Frequency data for a given Type record can be edited through the 'edit type' form. All values are rounded to two significant digits. Any field left blank will be interpreted as a zero value. To delete the frequency table entirely (e.g. in an obsolete entry), check the 'remove frequency table' box.
+	</p>
+	<p>
+		If a Type record does not already have a frequency table, you can create one by adding non-zero values in any or all fields. (Any fields left blank will then be interpreted as zero values.)
+	</p>
+	</div>
+
+
+	<div class="well" id="creating">
+	<h3>Creating new records</h3>
+	<p>
+		To create a new Entry record, go to the <a href="{% url 'gel_editor' action='add' level='root' id=0 %}">Add entry</a> page (<strong>More &raquo; Add entry</strong>). To create a new Wordclass record or Type record within an entry, click the green 'Add wordclass' or 'Add type' buttons on the entry display page.
+	</p>
+	<p>
+		When creating a new Entry record, a child Wordclass record will be automatically created at the same time, based on the lemma and wordclass specified. The child Wordclass will be populated with an appropriate set of Type records (including inflections for nouns and verbs, if the 'Generate inflections' box is checked). You can add other Wordclass records subsequently by editing the entry in the normal way.
+	</p>
+	<p>
+		When creating a new Wordclass record, an appropriate set of child Type records will be automatically created at the same time (including inflections for nouns and verbs, if the 'Generate inflections' box is checked).
+	</p>
+	<p>
+		Generated inflections are computed algorithmically, so may be incorrect in the case of irregular verbs, non-naturalized nouns, etc. They should therefore be checked. In particular, the process does not evaluate whether a noun is likely to be countable: if the 'Generate inflections' box is checked, a plural will always be generated.
+	<p>
+	<p>
+		When a new Type record is created (whether directly or as a by-product of creating a new Entry record or Wordclass record), the record is created without a Frequency Table. If a Frequency Table is required, it must be added subsequently by editing the Type record (see <a href="#frequency">Frequency data</a>). <em>This may be changed in future versions.</em>
+	</p>
+	</div>
+
+
+	<div class="well" id="deleting">
+	<h3>Deleting records</h3>
+	<p>
+		An Entry record, Wordclass record, or Type record may be deleted by clicking the red 'Delete' button in the entry display page. All child records will also be deleted: for example, deleting an Entry record will also delete its child Wordclass records, Type records, and any Link objects or Frequency Tables. Deletions cannot be undone.
+	</p>
+	<p>
+		A Wordclass record cannot be deleted if it's the only wordclass in its entry. Similarly, a Type record cannot be deleted if it's the only type in its wordclass.
+	</p>
+	</div>
+
+
+	<div class="well" id="merging">
+	<h3>Merging records</h3>
+	<p>
+		Merge operations take salient components of one entry and transfers them to another entry, deduplicating if necessary. The source entry is then deleted. Merge operations should only be used when two records have been erroneously created for the same lemma.
+	</p>
+	<p>
+		An entry can be merged with another entry by clicking the yellow 'Merge' button in the entry display page for the source entry. You will be asked for the ID of the target entry, i.e. the entry that the current entry will be merged into.
+	</p>
+	<p>
+		If the source entry contains a wordclass not in the target entry (e.g. the source entry has a 'noun' wordclass, whereas the target entry only has a 'verb' wordclass), the Wordclass record and all its child components (Type records, Frequency Tables, etc.) will be transferred to the target entry.
+	<p>
+	<p>
+		If the source entry contains a wordclass that is already in the target entry, its child Type records will be checked, and any that are not already covered the target entry will be transferred. In the case of a Type record that is already covered in the target entry, its Frequency Table values will be added to the corresponding Frequency Table in the target entry.
+	<p>
+	<p>
+		Links from the source entry to external resources are transferred to the target entry.
+	</p>
+	<p>
+		Following a merge operation, the source entry is deleted.
+	</p>
+	</div>
+
+
+	<div class="well" id="custom">
+	<h3>Custom fields</h3>
+	<p>
+		In addition to the core fields mandated for Entry, Wordclass, and Type records, you can define any number of additional fields. The <a href="{% url 'gel_custom' %}">Custom fields</a> page (<strong>More &raquo; Custom fields</strong>) lists any custom fields already defined, and allows you to edit these or add others.
+	</p>
+	<p>
+		Custom field values are displayed alongside core field values in the entry display, and can be edited alongside core field values in edit dialogues. Custom field values can be retrieved via API in the same way as core field values.
+	</p>
+	<p>
+		To define a new custom field, use the form at the bottom of the <a href="{% url 'gel_custom' %}">Custom fields</a> page. This specifies:
+		<ul>
+			<li>The type of record to which the new field will be attached (Entry, Wordclass, or Type);</li>
+			<li>The name of the field;</li>
+			<li>A description of the field (optional; used to give additional information to the user when displaying the field);</li>
+			<li>The type of value that the field may contain (e.g. text, integer, or float; see below);</li>
+			<li>A default value, to be used for records where a value has not (yet) been explicitly set.</li>
+		</ul>
+	</p>
+
+	<h4>Value types</h4>
+	<p>
+		The value type specifies the kind of value that a field may hold. Options are:
+		<ul>
+			<li><strong>text</strong>: a text string of any kind;</li>
+			<li><strong>integer</strong>: an integer (positive or negative), e.g. 1876, -22;</li>
+			<li><strong>float</strong>: a floating-point number, e.g. 2.73;</li>
+			<li><strong>boolean</strong>: True/False;</li>
+			<li><strong>select</strong>: one of the values from a closed set of text strings (see below);</li>
+			<li><strong>URL</strong>;</li>
+			<li><strong>URL template</strong>: a compact notation used for regular URL patterns (see below).</li>
+		</ul>
+	</p>
+	<p>
+		When a value type is selected, the form adjusts to make the appropriate inputs available. For example, when the 'select' type is chosen, the form adjusts to include an input for the set of values to be specified.
+	<p>
+		Once a custom field has been defined, the value type cannot be changed, since this might invalidate values already set on particular records.
+	</p>
+
+	<h4>Default value</h4>
+	<p>
+		The default value will be used for any record where the custom field value has not been explicitly set. The default value is not actually stored in the record, but will be the value shown in the entry display page, and the value returned by the API.
+	</p>
+	<p>
+		The default value must match the field type. For example, if the field value is set to 'integer', the default value must be an integer. If the field value is set to 'select', the default value must be one of the values supplied in the list of choices.
+	</p>
+	<p>
+		In many cases the appropriate default value will be 'null'. To set the default value to null, either enter 'null' in the 'Default value' field, or just leave it blank. Null values are permitted for all field types.
+	</p>
+
+	<h4>'Select' type</h4>
+	<p>
+		A field with a 'select' type may have a value selected from a closed set of possible values. When defining the field, you must define the set of choices in the 'choices' field, using the '|' character as a separator. For example, a select-type field called 'region' might have the choices 'UK|US|Australia|South Africa'. These will appear as dropdown options in the entry-edit page.
+	</p>
+	<p>
+		If you define a default for a select-type field, it must be one of the options from the 'choices' field. (As with any other custom field, the default can be left blank for a null default.)
+	</p>
+
+	<h4>'URL template' type</h4>
+	<p>
+		The 'URL template' type is intended to simplify the encoding of URLs, in cases where the URL has a consistent and predictable form. The use of a URL temnplate means that only the variable component (e.g. an ID) needs to be stored, and the template will supply the rest.
+	</p>
+	<p>
+		For example, a field used to store the URLs of en-Wikipedia pages would be best treated as an URL-template field, since en-Wikipedia pages all take the form 'http://en.wikipedia.org/wiki/pagename'. Using an URL-template field means that only the 'pagename' component needs to be stored, rather than the full URL. This has the additional benefit that if Wikipedia changes its URL structure in the future, you only need to adjust the template; the individual values stored in records do not need to be changed.
+	</p>
+	<p>
+		When defining an URL-template field, use the placeholder '{% verbatim %}{{PARAM}}{% endverbatim %}' for the variable component of the URL, where the field value will be inserted. For en-Wikipedia URLs, for example, the URL-template field would be '{% verbatim %}http://en.wikipedia.org/wiki/{{PARAM}}{% endverbatim %}'.
+	</p>
+
+	<h4>Deleting a custom field</h4>
+	<p>
+		A custom field may be deleted by clicking 'delete field' in the <a href="{% url 'gel_custom' %}">Custom fields</a> page. This automatically removes the field from all records.
+	</p>
+	</div>
+
+
+	<div class="well" id="datestamps">
+	<h3>Datestamps</h3>
+	<p>
+		Each Entry record, Wordclass record, and Type record has a datestamp. This is set when the record is first created, and is updated whenever the record is edited in any way (either directly, or by virtue of a child record being edited).
+	</p>
+	<p>
+		Datestamps bubble upwards. For example, if the frequency table belonging to a Type record is edited or deleted, the datestamp on the Type record will be updated. This will cause the datestamp on its parent Wordclass record to be updated, and this in turn will cause the datestamp on its parent Entry record to be updated. The upshot is that the datestamp on an Entry record reflects the lats time that anything within the entry was changed.
+	</p>
+	<p>
+		Datestamps can be used as a search filter to retrieve entries which have been edited recently. See <a href="#search">Search</a>.
+	</p>
+	</div>
+
+
+	<div class="well" id="links">
+	<h3>Link objects</h3>
+	<p>
+		Entry records are linked to external resources by Link objects. A Link object links a GEL2 record to a specific entry in an external resource (and, optionally, to a specific node within that entry, e.g. a subentry).
+	</p>
+	<p>
+		A Link object specifies a resource ID, entry ID, and an optional node ID. The GEL2 application translates this into a URL, using the URL template registered for the resource in question (see <a href="#resources">Resources</a>). These URLs are used to construct links in search results lists and entry display pages.
+	</p>
+	<p>
+		Links can be created, edited, and deleted when editing an Entry record. Deleting an Entry record automatically deletes any child links.
+	</p>
+	<p>
+		Deleting a resource automatically deletes all links to that resource. See <a href="#resources">Resources</a>.
+	</p>
+	</div>
+
+
+	<div class="well" id="resources">
+	<h3>Resources</h3>
+	<p>
+		The <a href="{% url 'gel_resources' %}">Resources</a> page (<strong>More &raquo; Resources</strong>) lists all external resources (dictionaries, thesauri, etc.) registered with GEL2. Each row in the list shows the resource ID, the short label (usually an initialism, e.g. 'NOAD'), the full title, and the number of links (i.e. the number of GEL2 entries linked to this resource).
+	</p>
+	<p>
+		To edit, delete, or add a resource, hover over the <i class="icon-cog"></i> symbol. To add a new resource, click the green 'add' button in the last row. When adding or editing a resource, you can specify the resource's short label and full title, the URL of the resource's homepage, and an optional comment (this will appear as a tooltip in the resource list).
+	</p>
+
+	<h4>Link templates</h4>
+	<p>
+		You must also specify how to construct a URL to an entry or subentry node within the resource (the 'Entry-link template' and 'Node-link template' fields). Given that each Link object only contains a resource ID and an entry or subentry ID (see <a href="#links">Link objects</a>), the GEL2 application needs to know how to turn this into a URL. The entry-link and node-link templates provide the means to do this, by specfiying a URL pattern with placeholders for the entry ID and node ID; the GEL2 application then substitutes the IDs stored in the Link object.
+	</p>
+	<p>
+		The placeholders are '{% verbatim %}{{ENTRYID}}' and '{{NODEID}}{% endverbatim %}' (note double braces and caps). For example:
+		<ul>
+			<li>The URL to an OED entry takes the form <code>http://www.oed.com/view/Entry/166698</code>, where '166698' is the entry ID. The entry-link template would therefore be <code>http://www.oed.com/view/Entry/{% verbatim %}{{ENTRYID}}{% endverbatim %}</code>.</li>
+			<li>The URL to an OED sub-entry node takes the form <code>http://www.oed.com/view/Entry/166698#eid25151843</code>, where '166698' is the entry ID and '25151843' is the node ID. The node-link template would therefore be <code>http://www.oed.com/view/Entry/{% verbatim %}{{ENTRYID}}#eid{{NODEID}}{% endverbatim %}</code>.</li>
+		</ul>
+	</p>
+	<p>
+		If you are confident that links to a given resource will only ever use entry IDs, not sub-entry node IDs, you do not need to specifiy a node-link template. (Leave the 'node-link template' field blank.)
+	</p>
+
+	<h4>Deleting a resource</h4>
+	<p>
+		Deleting a resource removes the resource from the list, and also removes all links from GEL2 records to the resource in question. (Note that this may leave some records unlinked to any resource.) This cannot be undone.
+	</p>
+	</div>
+
+	<div class="well" id="frequency">
+	<h3>Frequency data</h3>
+	<p>
+		To display frequency charts, click the <i class="icon-picture"></i> icons in the entry display page.
+	</p>
+	<p>
+		Frequency data is supplied for all non-obsolete Type records. The data takes the form of a series of values for a range of periods from 1750 to the present. Each value represents frequency per million corpus tokens (i.e. ~frequency per million words).
+	</p>
+	<p>
+		Frequency information is taken from the source data for the OED frequency project, and is derived ultimately from measures taken from the <a href="http://storage.googleapis.com/books/ngrams/books/datasetsv2.html" target="ext">Google Ngrams</a> corpus.
+	</p>
+	<p>
+		Frequency tables are specific to individual Type records, and are not stored for Wordclass or Entry records. However, frequency information is computed for Wordclass and Entry records on the fly, by aggregating the frequency tables of each child Type record. This enables frequency charts to be displayed at Wordclass and Entry level, and for entry-level frequency information to be returned by API.
+	</p>
+	</div>
+
+	<div class="well" id="topics">
+	<h3>Topics</h3>
+	<p>
+		The GEL2 data model includes a topic taxonomy, derived largely from the ODE/NOAD taxonomy used in Oxford Dictionaries Online. The full taxonomy is displayed in the <a href="{% url 'gel_taxonomy' %}">Topic taxonomy</a> page.
+	</p>
+	<p>
+		An Entry record may be tagged with any number of taxonomy nodes. To add or remove a taxonomy from an Entry record, check or uncheck the relevant tickbox in the 'Topics' section of the entry editor page (see <a href="#editing">Editing records</a>).
+	</p>
+
+	<h4>Editing the taxonomy</h4>
+	<p>
+		The taxonomy can be edited through the <a href="{% url 'gel_taxonomy' %}">Topic taxonomy</a> page. Mouse over the <i class="icon-cog"></i> icon to the right of a node to display the control buttons. These allow you to:
+		<ul>
+			<li>edit the node, i.e. adjust its name, or add a comment;</li>
+			<li>move the node to a different parent node (this will also move any child nodes on its branch);</li>
+			<li>add a new node as a child of the present node;</li>
+			<li>delete the node (see below).</li>
+		</ul>
+	</p>
+	<p>
+		Changes made to the taxonomy will be automatically reflected in any entry record tagged with the node(s) affected. For example, if a node is moved from one parent to another, entry records will show the new taxonomic breadcrumb.
+	</p>
+
+	<h4>Deleting a node</h4>
+	<p>
+		To delete a taxonomy node, click the 'delete' button. Only leaf (end) nodes can be deleted.
+	</p>
+	<p>
+		Deleting a taxonomy node will also remove the topic tag from all entry records.
+	</p>
+	</div>
+
+
+	<div class="well" id="importing">
+	<h3>Importing new content</h3>
+	<p>
+		See separate documentation <a href="{% url 'gel_info' page='importing' %}">here</a>.
+	</p>
+	</div>
+
+
+	<div class="well" id="api">
+	<h3>API</h3>
+	<p>
+		See separate API documentation <a href="{% url 'gel_info' page='api' %}">here</a>.
+	</p>
+	</div>
+
+
+	<div class="well" id="validation">
+	<h3>Validation checks</h3>
+	<p>
+		Content and database checks may be run via the <a href="{% url 'gel_validate' %}">Validation</a> page. This includes a number of checks for content which may contain lexical anomalies; and some checks for database integrity.
+	</p>
+	<p>
+		The content checks included at present are:
+		<ul>
+			<li>entries with no links to external resources;</li>
+			<li>entries with no wordclass records;</li>
+			<li>entries with duplicate wordclasses; e.g. if an entry contains two 'verb' wordclasses;</li>
+			<li>entries missing a type record for the base wordclass; e.g. if the wordclass is 'noun' but the types do not include 'NN';</li>
+			<li>entry lemma not found in types; e.g. if the entry lemma is <em>theatre</em> but the type wordforms only list <em>theater</em> and <em>theaters</em>.</li>
+		</ul>
+	</p>
+	</div>
+
+{% endblock %}

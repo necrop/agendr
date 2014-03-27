@@ -1,0 +1,200 @@
+{% extends "htdistribution/base.html" %}
+
+{% block page_title %}
+Help
+{% endblock %}
+
+{% block pagecontent %}
+	<div class="hero-unit subhero">
+		<h2>Historical Thesaurus distribution: help</h2>
+	</div>
+
+	<div class="row">
+		<div class="span6 offset2 helptext">
+			<div class="well" id="introduction">
+				<h3>Introduction</h3>
+				<p>
+					The HT distribution app provides tools to analyse how various features of OED content are distributed across the Historical Thesaurus. For the moment these features are limited to:
+					<ul>
+						<li>quotations from particular authors;</li>
+						<li>derivation from particular foreign languages;</li>
+						<li>compounds formed from particular words;</li>
+					</ul>
+					However, this is for illustrative purposes only; the same principles could be applied to a range of other features, such as labels, n-grams from definition text or quotation text, work titles, date ranges, etc.
+				</p>
+				<p>
+					This implementation focuses mainly on the top levels of the Historical Thesaurus (especially levels 2 and 3), although scatter charts show granularity down to level 5. However, the same principles could be applied recursively to deeper levels.
+				</p>
+			</div>
+
+			<div class="well" id="elementtypes">
+				<h3>Element types</h3>
+				<h4>Author</h4>
+				<p>
+					Senses and subentries whose quotation paragraph include at least one quotation by the author specified. E.g. the 'Charles Darwin' element comprises all senses and subentries that include a Darwin quotation.
+				</p>
+
+				<h4>Language</h4>
+				<p>
+					Senses and subentries from entries where at least one direct etymon is from the language specified. E.g. the 'Russian' element comprises all senses and subentries in entries derived from a Russian etymon.
+				</p>
+
+				<h4>Compound</h4>
+				<p>
+					Senses and subentries with a compound lemma (A+B) where one of the components is the word specified. E.g. the 'horse' element comprises all senses and subentries with a lemma that includes the word 'horse', either as the first or last word (<em>horse-fly, saw-horse, workhorse</em>, etc.). This may be a sublemma in the case of a subentry, or an entry headword in the case of a main sense.
+				</p>
+			</div>
+
+			<div class="well" id="exploring">
+				<h3>Exploring elements</h3>
+				<p>
+					A table of elements can be viewed by selecting the element type from the 'base sets' dropdown in the top navigation. The table of elements can be sorted in various ways by clicking the arrows at the top of each column.
+				</p>
+				<p>
+					Click on an element name to explore details for that element.
+				</p>
+				<p>
+					For each element, there are four main ways to view information:
+				</p>
+
+				<h4>Tables</h4>
+				<p>
+					Tabular data giving salient metrics about the element's distribution in the Historical Thesaurus, e.g. the top 10 thesaurus classes ranked by density and by fractional value (see <a href="#metrics">Metrics</a>).
+				</p>
+
+				<h4>Scatter</h4>
+				<p>
+					A treemap of the top-level classes of the Historical Thesaurus, with data points showing the location of each sense in the element. This gives a general picture of how the element is distributed across the thesaurus.
+				</p>
+					The scatter chart shows granularity down to level 5.
+				</p>
+
+				<h4>Stack (level 2)</h4>
+				<p>
+					This uses the same treemap underlay as in the scatter chart, but stacks data points as histogram bars, for each level-2 class. This makes relative proportions easier to discern.
+				</p>
+				<p>
+					The area of each histogram bar is proportional to its fractional value (the percentage of all the element's senses). The length of each histogram bar is proportional to density. 
+				</p>
+
+				<h4>Stack (level 3)</h4>
+				<p>
+					Like the level-2 stack chart, but showing histogram bars for level 3 of the thesaurus.
+				</p>
+			</div>
+
+			<div class="well" id="collections">
+				<h3>Collections</h3>
+				<p>
+					A collection is a set of elements that can be analysed as a group and compared with each other. The list of existing collections can be seen by clicking the 'Collections' dropdown in the top navigation.
+				</p>
+
+				<h4>Creating a collection</h4>
+				<p>
+					To create a new collection, select one of the element types from the 'base sets' dropdown in the top navigation, e.g. 'authors'. Select two or more authors by ticking the checkboxes in the left-hand column, then click 'make collection' at the bottom of the table.
+				</p>
+				<p>
+					A new collection can also be created in the same way by selecting a subset of elements from an existing collection.
+				</p>
+				<p>
+					At present, it's only possible to build collections from elements of the same type; it's not possible to mix elements of different types (e.g. authors amd languages) within the same collection. 
+				</p>
+
+				<h4>Saving a collection</h4>
+				<p>
+					Once a new collection has been created, you can give it a name in the 'Collection name' box, then click 'save'. Saved collections appear in the 'Collections' dropdown in the top navigations. Saved collections are available to all users.
+				</p>
+
+				<h4>Managing collections</h4>
+				<p>
+					Click 'Manage collections' at the end of the 'Collections' dropdown. This lets you add and remove elements from a  collection; rename the collection; or delete the collection. Again, any changes made here will be apply to all users.
+				</p>
+			</div>
+
+			<div class="well" id="exploringcollection">
+				<h3>Exploring a collection</h3>
+				<p>
+					For each collection, there are eight ways to view information: 
+				</p>
+
+				<h4>Elements data</h4>
+				<p>
+					A table showing metrics for each element in the collection. Like the main lists of element, the table can be sorted by clicking the arrows at the top of each column.
+				</p>
+
+				<h4>&#x03c7<sup>2</sup> (level 2)</h4>
+				<p>
+					A scatter chart showing relative &#x03c7<sup>2</sup> statistics for level-2 thesaurus classes (see <a href="#metrics">Metrics</a>). Bubble representing each element are scaled to reflect the element's size (total number of senses).
+				</p>
+
+				<h4>&#x03c7<sup>2</sup> (level 3)</h4>
+				<p>
+					Like level-2 &#x03c7<sup>2</sup>, but showing relative &#x03c7<sup>2</sup> statistics for level-3 thesaurus classes.
+				</p>
+
+				<h4>Senses per branch</h4>
+				<p>
+					Treemap showing relative number of senses in each level-2 thesaurus class for each element in the collection. The area of each block is proportional to the number of senses.
+				</p>
+
+				<h4>Fraction per branch</h4>
+				<p>
+					Treemap showing relative fractional value for each element for each level-2 thesaurus class for each element in the collection. The area of each block is proportional to the fractional value (a larger area shows that a larger fraction of the element's senses occur in the class).
+				</p>
+				<p>
+					Since the fractional value is dimensionless, this may be more useful than the 'senses per branch' treemap, especially  for collections in which elements have very different overall sizes.
+				</p>
+
+				<h4>Detailed comparison</h4>
+				<p>
+					Allows the user to select any level-2 or level-3 thesaurus class, and displays a histogram showing how each element in the collection is correlated with that class. The area of each histogram bar indicates relative density; the height of each histogram bar shows fractional value (i.e. a high bar shows that a relatively large fraction of the element's senses occur in the class).
+				</p>
+
+				<h4>Properties (level 2)</h4>
+				<p>
+					Analysis of the distinctive properties of each element, in terms of distribution across level-2 thesaurus classes. For each element, lists the thesaurus classes with which the element has above-average correlation (relative to mean average correlation for all elements in the collection).
+				</p>
+
+				<h4>Properties (level 3)</h4>
+				<p>
+					Like level-2 properties above, but for level-3 thesaurus classes.
+				</p>
+			</div>
+
+			<div class="well" id="metrics">
+				<h3>Metrics</h3>
+				<h4>Density</h4>
+				<p>
+					Density is a measure of the number of matching senses in a given thesaurus branch, as a ratio of the total number of senses in the branch. The density value is always between 0 and 1. For example, a density value of 0.1 for a given thesaurus branch means that the matching senses constitute 10% of all senses in the branch.
+				</p>
+				<p>
+					Density is useful for comparing distribution of senses for a given element, but less useful for comparing distributions between two elements. For example, Shakespeare has higher density than Darwin in the 'animal' branch of the thesaurus; but this just reflects the fact that Shakespeare has far more senses than Darwin in total.
+				</p>
+
+				<h4>Fraction</h4>
+				<p>
+					The fraction of an element's senses that occur in a given thesaurus branch. For example, if 5% of Charles Dickens' quotations occur in the 'occupation' branch of the thesaurus, then the fractional value would be 0.05.
+				</p>
+				<p>
+					Because the fractional value is dimensionless, it can be used to compare distibution patterns for two elements of very different size (e.g. comparing an author with relatively many quotations to an author with relatively few quotations).
+				</p>
+				<p>
+					When considering HT distribution as a predictive model, the fractional value can be taken to express probability: if Charles Dickens' quotations have a fractional value of 0.05 for the 'occupation' branch of the thesaurus, this means that a sense containing a Charles Dickens quotation has a 5% probability of belonging to the 'occupation' branch.
+				</p>
+
+				<h4>&#x03c7<sup>2</sup></h4>
+				<p>
+					Chi-squared statistic. The &#x03c7<sup>2</sup> statistic is a measure of how evenly dispersed senses are across the thesaurus. An element whose senses were randomly distributed would have a &#x03c7<sup>2</sup> value of zero. An element whose senses tend to be clumped in particular areas would have a high value.
+				</p>
+				<p>
+					The &#x03c7<sup>2</sup> value is calculated using the <a href="http://en.wikipedia.org/wiki/Chi-squared_test" target="new">chi-squared test</a>. Essentially, this is derived by measuring the difference between the expected and actual number of senses found in each branch of the thesaurus, and then summing these differences. The 'expected' value here is based on null hypothesis that senses are randomly distributed, i.e. spread out evenly with no clumping.
+				</p>
+				<p>
+					The corresponding <a href="http://en.wikipedia.org/wiki/P-value" target="new">p-value</a> is shown in the 'Distribution metrics' section of the element's data page. Because &#x03c7<sup>2</sup> values are usually very higher, p-values are usually extremely small (close to zero). In some cases, the p-value is so small as to be computationally indistinguishable from zero. (This suggests that chi-squared is probably the wrong test to be using... may be replaced by something more appropriate.)
+				</p>
+			</div>
+
+		</div>
+	</div>
+
+{% endblock %}

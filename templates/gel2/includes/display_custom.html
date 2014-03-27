@@ -1,0 +1,16 @@
+{% load gel2_extras %}
+{% for c in custom %}
+	<li>
+		{{ c.name|capfirst }}: 
+		{% if c.value|is_none %}
+			[null]
+		{% else %}
+			{% if c.type == 'url' or c.type == 'url template' %}
+				<a href="{{ c.compiled_url }}" target="ext">{{ c.compiled_url }} <i class="icon-share-alt"></i></a>
+			{% else %}
+				{{ c.value }}
+			{% endif %}
+		{% endif %}
+		{% if c.description %}{% include "gel2/includes/q_popover.html" with text=c.description %}{% endif %}
+	</li>
+{% endfor %}

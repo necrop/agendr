@@ -1,0 +1,193 @@
+{% extends "gel2/base.html" %}
+{% load gel2_extras %}
+{% load humanize %}
+
+
+{% block pagecontent %}
+	<div class="hero-unit subhero">
+		<h1>{{ entry.label }}{% if entry.obsolete %} &#x2020;{% endif %}</h1>
+		<p>
+			[{{ entry.wordclass_list }}]&nbsp;&nbsp;
+			{% if entry.definition %}&ldquo;{{ entry.definition }}...&rdquo;{% else %}[undefined]{% endif %}
+		</p>
+	</div>
+
+	<div class="entryDetails">
+		<ul class="inline">
+			<li>Linked to:</li>
+			{% if not entry.links %}
+				<li>[no links]</li>
+			{% else %}
+				{% for l in entry.links %}
+					<li>{{ l.html|safe }}</li>
+				{% endfor %}
+			{% endif %}
+		</ul>
+
+		<ul>
+			<li>ID: {{ entry.id }}</li>
+			<li>Last edited: {{ entry.datestamp|naturaltime }}</li>
+			<li>{% include "gel2/includes/frequency_link.html" with obj=entry %}</li>
+			<li>UK soundfile: {{ entry.soundfile_uk }}</li>
+			<li>US soundfile: {{ entry.soundfile_us }}</li>
+			{% if entry.topic_list %}
+				<li>Topics:
+					<ul>
+						{% for t in entry.topic_list %}
+							<li>
+								{{ t.breadcrumb }}
+								{% if t.description %}
+									{% include 'gel2/includes/q_popover.html' with text=t.description %}
+								{% endif %}
+								&nbsp;&nbsp;<a href="{% url 'gel_results' lemma='a-zzz' %}?topic={{ t.id }}" data-content="Find other entries tagged with this topic" rel="popover" data-toggle="popover"><i class="icon-tag"></i></a>
+							</li>
+						{% endfor %}
+					</ul>
+				</li>
+			{% endif %}
+			{% include "gel2/includes/display_custom.html" with custom=entry.custom_parsed %}
+		</ul>
+
+		<div class="buttonContainer">
+			<i class="icon-cog"></i>
+			<div class="btn-group hoverButtons">
+				{% include "gel2/includes/edit_button.html" with id=entry.id action="edit" object="entry" %}
+				{% include "gel2/includes/edit_button.html" with id=entry.id action="merge" object="entry" %}
+				{% include "gel2/includes/edit_button.html" with id=entry.id action="add" object="entry" child="wordclass" %}
+				{% include "gel2/includes/edit_button.html" with id=entry.id action="delete" object="entry" %}
+			</div>
+		</div>
+
+		{% for wc in entry.wordclasses_sorted %}
+		<div class="row-fluid">
+			<div class="span12 wordclassblock well">
+				{% include "gel2/includes/wordclass.html" with wordclass=wc %}
+			</div>
+		</div>
+		{% endfor %}
+	</div>
+{% endblock %}
+
+
+{% block hidden_elements %}
+	<div class="modal hide" id="chartModal">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="icon-remove"></i></button>
+			<h3>Frequency chart</h3>
+		</div>
+		<div class="modal-body" id="chartModalContents">
+		</div>
+		<div class="modal-footer">
+			<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+		</div>
+	</div>
+
+	<div class="modal hide" id="deleteModal">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="icon-remove"></i></button>
+			<h3>Delete</h3>
+		</div>
+		<div class="modal-body">
+			<p>Are you sure you want to delete this <span id="deleteModalLevel"></span>?<p>
+			<p>Note that all child objects will also be deleted (<span id="deleteModalChildren"></span>).</p>
+			<div class="btn-group">
+				<button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Cancel</button>
+				<a class="btn btn-danger" href="#" id="deleteModalContinue">Continue</a>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+		</div>
+	</div>
+
+	<div class="modal hide" id="moveModal">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="icon-remove"></i></button>
+			<h3>Move wordclass block</h3>
+		</div>
+		<div class="modal-body">
+			<form class="form-horizontal" action="#" method="post" id="moveModalForm">
+				{% csrf_token %}
+				<div class="control-group">
+					<label class="control-label" for="targetid">ID of target entry:</label>
+					<div class="controls">
+						<input type="text" name="targetid" id="targetid" placeholder="e.g. 1577219"/>
+					</div>
+				</div>
+				<div class="control-group">
+					<div class="controls">
+						<button type="submit" class="btn btn-primary">Submit</button>
+					</div>
+				</div>
+			</form>
+		</div>
+		<div class="modal-footer">
+			<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+		</div>
+	</div>
+
+
+	<div class="modal hide" id="mergeModal">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="icon-remove"></i></button>
+			<h3>Merge entry</h3>
+		</div>
+		<div class="modal-body">
+			<p>Wordclasses, types, links and frequency tables in the current entry will be transferred to the target entry (if not already duplicated in the target entry). The current entry will then be deleted.<p>
+			<form class="form-horizontal" action="#" method="post" id="mergeModalForm">
+				{% csrf_token %}
+				<div class="control-group">
+					<label class="control-label" for="targetid">ID of target entry:</label>
+					<div class="controls">
+						<input type="text" name="targetid" id="targetid" placeholder="e.g. 1577219"/>
+					</div>
+				</div>
+				<div class="control-group">
+					<div class="controls">
+						<button type="submit" class="btn btn-primary">Submit</button>
+					</div>
+				</div>
+			</form>
+		</div>
+		<div class="modal-footer">
+			<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+		</div>
+	</div>
+{% endblock %}
+
+
+{% block extrascript %}
+	$('a.chartModalSwitch').click( function(event) {
+		var level=$(this).attr('level');
+		var objectid=$(this).attr('objectid');
+		$('#chartModalContents').html("<img src='{{ baseurl }}/frequencychart/" + level + "/" + objectid + ".png'/>");
+		$('#chartModal').modal('show');
+		event.preventDefault() ;
+	}) ;
+
+	$('a.deleteModalSwitch').click( function(event) {
+		var level=$(this).attr('level');
+		var href=$(this).attr('href');
+		$('#deleteModalLevel').text(level);
+		if (level == 'entry') { $('#deleteModalChildren').text('wordclasses, types, frequency tables, and links'); }
+		if (level == 'wordclass') { $('#deleteModalChildren').text('types, frequency tables, and links'); }
+		if (level == 'type') { $('#deleteModalChildren').text('frequency table'); }
+		$('#deleteModalContinue').attr('href', href);
+		$('#deleteModal').modal('show');
+		event.preventDefault() ;
+	}) ;
+
+	$('a.moveModalSwitch').click( function(event) {
+		var href=$(this).attr('href');
+		$('#moveModalForm').attr('action', href);
+		$('#moveModal').modal('show');
+		event.preventDefault() ;
+	}) ;
+
+	$('a.mergeModalSwitch').click( function(event) {
+		var href=$(this).attr('href');
+		$('#mergeModalForm').attr('action', href);
+		$('#mergeModal').modal('show');
+		event.preventDefault() ;
+	}) ;
+{% endblock %}

@@ -1,0 +1,19 @@
+
+{% if results.has_other_pages %}
+	<div class="row">
+		<div class="span12">
+			<ul class="pager">
+			{% if results.has_previous %}
+				<li class="previous">
+					<a href="?{{ prevlink }}"><i class="icon-chevron-left"></i> previous page</a>
+				</li>
+			{% endif %}
+			{% if results.has_next %}
+				<li class="next">
+					<a href="?{{ nextlink }}">next page <i class="icon-chevron-right"></i></a>
+				</li>
+			{% endif %}
+			</ul>
+		</div>
+	</div>
+{% endif %}

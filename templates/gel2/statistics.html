@@ -1,0 +1,26 @@
+{% extends "gel2/base.html" %}
+
+
+{% block pagecontent %}
+	<div class="hero-unit subhero">
+		<h1>GEL2 statistics</h1>
+	</div>
+
+	<table class="table table-bordered table-hover">
+		<thead>
+			<tr>
+				<th>Record type</th>
+				<th>Number of records</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for r in records %}
+			<tr>
+				<td>{{ r.0 }}</td>
+				<td>{{ r.1 }}</td>
+			</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+{% endblock %}
+

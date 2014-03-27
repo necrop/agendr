@@ -1,0 +1,73 @@
+body {
+	padding-top: 60px;
+	padding-bottom: 40px;
+}
+
+.hero-unit {
+	background-color: #FF9900;
+}
+.subhero {
+	padding-top: 30px;
+	padding-bottom: 30px;
+}
+
+
+/* entry display page */
+.entryDetails ul {
+	margin-bottom: 0px;
+	padding-bottom: 0px;
+}
+
+.wordclassblock {
+	margin-top: 20px;
+	padding-top: 0px;
+	background-color: #E2FFFF;
+	border-width: 2px;
+	border-color: #A3D6F5;
+}
+
+.typerow {
+	margin-top: 20px;
+}
+.typerow .span4 {
+	background-color: #F9FCC7;
+}
+.typerow h4 {
+	margin-top: 0px;
+}
+
+/* help pages */
+div.helptext h4 {
+	margin-top: 2em ;
+}
+
+/* model overlay */
+.modal {
+	width: 800px;
+	margin-left: -400px;
+	margin-right: -400px;
+}
+
+/* forms */
+.scroll_checkboxes {
+	height: 20em;
+	width: 20em ;
+	padding: 5px;
+	overflow: auto;
+	border: 1px solid #ccc
+}
+
+
+.jobCompleted {
+	background-color: #ff3333;
+}
+.jobRunning {
+	background-color: #87E293;
+}
+.jobReady {
+	background-color: #ffff66;
+}
+.jobInvalid {
+	background-color: #EBEBEB;
+	color: #666666;
+}

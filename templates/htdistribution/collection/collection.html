@@ -1,0 +1,156 @@
+{% extends "htdistribution/base.html" %}
+{% load htdistribution_extras %}
+
+{% block page_title %}
+{% if collection %}{{ collection.label }}{% else %}collection{% endif %}
+{% endblock %}
+
+{% block pagecontent %}
+<div class="hero-unit subhero">
+	<h2>{% if collection %}{{ collection.label }}{% else %}Collection: {{ setname }}s{% endif %}</h2>
+	<p>{{ collection.members }}</p>
+</div>
+
+<div class="navbar">
+	<div class="navbar-inner">
+		<ul class="nav">
+			<li {% if view == 'home' %}class="active"{% endif %}><a href="?view=home"><i class="icon-list"></i> elements data</a></li>
+			<li {% if view == 'chistat2' %}class="active"{% endif %}><a href="?view=chistat2"><i class="icon-picture"></i> &#x03c7;<sup>2</sup> (l2)</a></li>
+			<li {% if view == 'chistat3' %}class="active"{% endif %}><a href="?view=chistat3"><i class="icon-picture"></i> &#x03c7;<sup>2</sup> (l3)</a></li>
+			<li {% if view == 'treestacksize' %}class="active"{% endif %}><a href="?view=treestacksize"><i class="icon-picture"></i> senses per branch</a></li>
+			<li {% if view == 'treestackshare' %}class="active"{% endif %}><a href="?view=treestackshare"><i class="icon-picture"></i> fraction per branch</a></li>
+			<li {% if view == 'histogramdetail' %}class="active"{% endif %}><a href="?view=histogramdetail"><i class="icon-zoom-in"></i> detailed comparison</a></li>
+			<li {% if view == 'properties2' %}class="active"{% endif %}><a href="?view=properties2"><i class="icon-list"></i> properties (l2)</a></li>
+			<li {% if view == 'properties3' %}class="active"{% endif %}><a href="?view=properties3"><i class="icon-list"></i> properties (l3)</a></li>
+		</ul>
+	</div>
+</div>
+
+
+{% if view == 'home' %}
+	<div class="row">
+	{% include 'htdistribution/includes/table_of_elements.html' with mode='compare' elements=elements setname=setname %}
+
+	{% if not collection %}
+		<div class="span6 well">
+		Save this collection? Saving a collection make it easy to return to later, and also makes it available to other users.
+		<form class="form-horizontal" action="{% url 'htdistribution_collectionsave' %}" method="post">
+			{% csrf_token %}
+			<input type="hidden" name="setname" value="{{ setname }}"/>
+			<input type="hidden" name="idlist" value="{{ idlist }}"/>
+			<div class="control-group">
+				<label class="control-label">Collection name (required)</label>
+				<div class="controls"><input type="text" name="label"/></div>
+			</div>
+			<div class="control-group">
+				<div class="controls"><button type="submit" class="btn-small btn-primary">save</button></div>
+			</div>
+		</form>
+		</div>
+	{% endif %}
+	</div>
+{% endif %}
+
+
+{% if view == 'treestackshare' %}
+	{% include 'htdistribution/includes/plotframe.html' with type='treestackshare2' idlist=idlist name='collChart' %}
+{% endif %}
+
+{% if view == 'treestacksize' %}
+	{% include 'htdistribution/includes/plotframe.html' with type='treestacksize2' idlist=idlist name='collChart' %}
+{% endif %}
+
+{% if view == 'chistat2' %}
+	{% include 'htdistribution/includes/plotframe.html' with type='chistat2' idlist=idlist name='collChart' %}
+{% endif %}
+
+{% if view == 'chistat3' %}
+	{% include 'htdistribution/includes/plotframe.html' with type='chistat3' idlist=idlist name='collChart' %}
+{% endif %}
+
+{% if view == 'histogramdetail' %}
+	{% if currentclass %}
+		<div class="row">
+			<h4>Senses in thesaurus class '{{ currentclass.breadcrumb }}'</h4>
+			{% include 'htdistribution/includes/plotframe.html' with type='histogramdetail' idlist=idlist name='collChart' thesaurusclass=currentclass.id %}
+			<p>The <strong>area</strong> of each bar is proportional to the number of senses that the {{ setname }} has in this thesaurus class.</p>
+			<p>The <strong>height</strong> of each bar indicates that fraction of all the {{ setname }}'s senses that belong to this thesaurus class. (The dotted line shows the mean average fraction for the collection.)</p>
+		</div>
+	{% endif %}
+
+	<div class="row">
+		<div class="span8 well">
+			<p>Select a thesaurus class from the lists below:</p>
+			<h4>Levels 1-2:</h4>
+			<div class="scroll_list span6">
+				<table class="table-striped">
+					<tbody>
+						{% for t in classes %}
+							{% if t.level == 1 or t.level == 2 %}
+								<tr> 
+									<td><a href="?view=histogramdetail&amp;class={{ t.id }}">{{ t.indented }}</a> &nbsp;&nbsp;<span style="color: gray;">({{ t.size }})</span></td>
+								</tr>
+							{% endif %}
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			<p style="clear: both"></p>
+			<h4>Level 3:</h4>
+			<div class="scroll_list span6">
+				<table class="table-striped">
+					<tbody>
+						{% for t in classes %}
+							<tr> 
+								<td><a href="?view=histogramdetail&amp;class={{ t.id }}">{{ t.indented }}</a> &nbsp;&nbsp;<span style="color: gray;">({{ t.size }})</span></td>
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+{% endif %}
+
+{% if view == 'properties2' or view == 'properties3' %}
+	{% for e in elements %}
+		<div class="row">
+			<h3><a href="{{ e.get_absolute_url }}">{{ e.label }}</a>{% include 'htdistribution/includes/oed_link.html' with oed_url=e.oed_url %}</h3>
+			<p>Total: {{ e.size }} senses</p>
+			<table class="table table-bordered table-hover">
+				<thead>
+					<th>Thesaurus class</th>
+					<th>Senses</th>
+					<th>Fraction of all senses</th>
+					<th>Avg. fraction (across collection)</th>
+					<th>Ratio to avg.</th>
+				</thead>
+				<tbody>
+				{% for c in e.top %}
+					<tr>
+						<td>
+							<a href="?view=histogramdetail&amp;class={{ c.0.id }}" title="compare collection">{{ c.0.breadcrumb }}</a> ({{ c.0.size }})
+							{% include 'htdistribution/includes/oed_link.html' with oed_url=c.oed_url %}
+						</td>
+						<td>{{ c.1 }}</td>
+						<td>{{ c.2|significantDigits:2 }}</td>
+						<td>{{ c.0.mean|significantDigits:2 }}</td>
+						<td>{{ c.3|significantDigits:3 }}</td>
+					</tr>
+				{% endfor %}
+				</tbody>
+			</table>
+		</div>
+	{% endfor %}
+{% endif %}
+
+
+{% endblock %}
+
+
+{% block extrascript %}
+	$('a#collChartFullscreen').click( function(event) {
+		$('#collChart').toggleFullScreen();
+		event.preventDefault() ;
+	}) ;
+{% endblock %}

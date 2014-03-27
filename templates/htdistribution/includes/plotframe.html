@@ -1,0 +1,8 @@
+<div style="position: relative;">
+	<a href="#" id="{{ name }}Fullscreen">
+		<img src="{% url 'htdistribution_plot' type=type idlist=idlist %}{% if thesaurusclass %}?class={{ thesaurusclass }}{% endif %}" id="{{ name }}"/>
+	</a>
+	<a href="#" id="{{ name }}Fullscreen" title="View chart fullscreen (Firefox and Chrome only)" style="z-index: 10; position: absolute; left: 0px; top: 0px;">
+		<i class="icon-fullscreen"></i>
+	</a>
+</div>

@@ -1,0 +1,77 @@
+{% extends "gel2/base.html" %}
+{% load gel2_extras %}
+
+{% block pagecontent %}
+	<div class="hero-unit subhero">
+		<h1>{{ body_title }}</h1>
+	</div>
+
+	<form class="form-horizontal" action="{% url 'gel_submitedit' %}" method="post">
+		{% csrf_token %}
+		<fieldset>
+			<div class="control-group">
+				<label class="control-label"><b>Core fields</b></label>
+			</div>
+			{% block forminputs %}
+			{% endblock %}
+
+			{% if action == 'edit' and record.level != 'resource' %}
+				<div class="control-group">
+					<label class="control-label"><b>Custom fields</b></label>
+				</div>
+				{% if form.custom_fields %}
+					{% for c in form.custom_fields %}
+						<div class="control-group">
+							<label class="control-label"">{{ c.name|capfirst }}:</label>
+							<div class="controls">
+								{% if c.type == 'text' or c.type == 'integer' or c.type == 'float' or c.type == 'url template' %}
+									<input type="text" name="custom_{{ c.id }}" value="{% if c.value %}{{ c.value }}{% endif %}"/>
+								{% endif %}
+								{% if c.type == 'url' %}
+									<input class="input-xxlarge" type="text" id="custom_{{ c.id }}" name="custom_{{ c.id }}" value="{% if c.value %}{{ c.value }}{% endif %}"/>
+								{% endif %}
+								{% if c.type == 'select' %}
+									<select name="custom_{{ c.id }}">
+										<option value="null" {% if not c.value %}selected="selected"{% endif %}>[null]</option>
+										{% for o in c.choiceslist %}
+											<option value="{{ o }}" {% if o == c.value %}selected="selected"{% endif %}>{{ o }}</option>
+										{% endfor %}
+									</select>
+								{% endif %}
+								{% if c.type == 'boolean' %}
+									<select name="custom_{{ c.id }}">
+										<option value="null" {% if c.value|is_none %}selected="selected"{% endif %}>[null]</option>
+										<option value="True" {% if c.value %}selected="selected"{% endif %}>True</option>
+										<option value="False" {% if c.value|is_false %}selected="selected"{% endif %}>False</option>
+									</select>
+								{% endif %}
+								&nbsp;&nbsp;[{{ c.type }}]
+								{% if c.description %}
+									{% include "gel2/includes/q_popover.html" with text=c.description %}
+								{% endif %}
+							</div>
+						</div>
+					{% endfor %}
+				{% else %}
+					<div class="control-group">
+						<label class="control-label">[No custom fields set]</label>
+					</div>
+				{% endif %}
+			{% endif %}
+
+			<input type="hidden" name="action" value="{{ action }}"/>
+			<input type="hidden" name="level" value="{{ record.level }}"/>
+			<input type="hidden" name="recordid" value="{{ record.id }}"/>
+			<input type="hidden" name="referrer" value="{{ referrer }}"/>
+
+			<div class="control-group">
+				<div class="controls">
+					<div class="btn-group">
+						<a class="btn btn-primary" href="{{ referrer }}">Cancel</a>
+						<button type="submit" class="btn btn-danger">Submit</button>
+					</div>
+				</div>
+			</div>
+		</fieldset>
+	</form>
+{% endblock %}

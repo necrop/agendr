@@ -1,0 +1,54 @@
+{% extends "gel2/editor/edit_frame.html" %}
+
+{% block forminputs %}
+<div class="control-group">
+	<label class="control-label">Wordform:</label>
+	<div class="controls">
+		<input type="text" name="form" value="{{ record.form }}"/>
+	</div>
+</div>
+<div class="control-group">
+	<label class="control-label">Part of speech:</label>
+	<div class="controls">
+		<select name="penn">
+			{% for opt in form.wordclass_options %}
+				<option value="{{ opt.0 }}" {% if opt.2 %}selected="selected"{% endif %}>{{ opt.1 }}</option>
+			{% endfor %}
+		</select>
+	</div>
+</div>
+<div class="control-group">
+	<label class="control-label">Variant:</label>
+	<div class="controls">
+		<select name="variant">
+			{% for opt in form.variant_options %}
+				<option value="{{ opt.0 }}" {% if opt.2 %}selected="selected"{% endif %}>{{ opt.1 }}</option>
+			{% endfor %}
+		</select>
+	</div>
+</div>
+
+{% if action == 'edit' %}
+	<div class="control-group">
+		<label class="control-label"><b>Frequency table</b></label>
+		<div class="controls">
+			{% include "gel2/includes/q_popover.html" with text="All values are rounded to two significant digits. Any blank field is interpreted as a zero value." %}
+		</div>
+	</div>
+	{% for f in form.freqtable %}
+	<div class="control-group">
+		<label class="control-label">{{ f.label }}:</label>
+		<div class="controls">
+			<input type="text" name="freqtable_{{ f.field }}" {% if f.is_set %}value="{{ f.value }}"{% endif %} placeholder="not set"/>
+		</div>
+	</div>
+	{% endfor %}
+	<div class="control-group">
+		<label class="control-label">Delete frequency table</label>
+		<div class="controls">
+			<input type="checkbox" name="removeFreqTable"/>
+		</div>
+	</div>
+{% endif %}
+
+{% endblock %}

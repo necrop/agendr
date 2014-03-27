@@ -1,0 +1,263 @@
+{% extends "gel2/info/help_frame.html" %}
+
+{% block header_title %}
+Importing data
+{% endblock %}
+
+{% block navlist %}
+	<li><a href="#intro">Introduction</a></li>
+	<li><a href="#workflow">Workflow</a></li>
+	<li><a href="#zip">Zip contents</a></li>
+	<li><a href="#config">Configuration file</a></li>
+	<li><a href="#csv">CSV file</a></li>
+	<li><a href="#import">Running the import</a></li>
+	<li><a href="#rollback">Roll-back</a></li>
+	<li><a href="#splitting">Splitting an import into multiple jobs</a></li>
+{% endblock %}
+
+{% block textcontent %}
+
+	<div class="well" id="intro">
+		<h3>Introduction</h3>
+		<p>
+			The import process provides a means to upload large quantities of data to the GEL2 database. Typically, this will be a series of entries from a new external resource (a dictionary, thesaurus, etc.) being linked to GEL2.
+		</p>
+		<p>
+			The import process
+			<ul>
+				<li>registers the new resource in the GEL2 resources list;</li>
+				<li>matches the new content to existing GEL2 records;</li>
+				<li>creates links between existing GEL2 records and the external resource;</li>
+				<li>creates new GEL2 records for any content left unmatched.</li>
+			</ul>
+		</p>
+		<p>
+			The import process can be configured to work with any XML data model, by defining XPath expressions in the configuration file.
+		</p>
+		<p>
+			Management of import jobs is done through the <a href="{% url 'gel_imports' %}">Import jobs</a> page (More &raquo; Import Jobs).
+		</p>
+	</div>
+
+	<div class="well" id="workflow">
+		<h3>Workflow</h3>
+		<p>
+			<ol>
+				<li>Create a zip file containing a config file and one or more XML documents containing the dictionary content;</li>
+				<li>In the <a href="{% url 'gel_imports' %}">Import jobs</a> page, use the 'Add new job' form to upload the zip; the job will now appear in the jobs table, with the status 'Awaiting CSV';</li>
+				<li>Mouse over the <i class="icon-cog"></i> icon to the right of the table row to display the control buttons; click 'generate CSV';</li>
+				<li>This starts the process of parsing the zip contents and generating a CSV file. This process runs asynchronously in the background, so you may need to refresh the page to check whether it has finished. Once the process has completed, the table row will turn yellow, with the status 'Ready to import';</li>
+				<li>Download the CSV file by clicking the <i class="icon-download-alt"></i> icon; check, edit, and re-save the file if necessary. (Make sure that you re-save the file as a CSV file with a .csv extension, <em>not</em> as a MS Excel .xls or .xlsx file.)</li>
+				<li>If the CSV file has been edited, upload the edited version by clicking the <i class="icon-refresh"></i> icon. (The edited version need not have the same name as the original version; the original version will be replaced in either case.)</li>
+				<li>Mouse over the <i class="icon-cog"></i> icon to the right of the table row and click 'import from CSV';</li>
+				<li>This starts the process of creating new links and entries based on the CSV file, and saving these to the GEL2 database. This process runs asynchronously in the background, so you may need to refresh the page to check whether it has finished. Once the process has completed, the table row will turn red, with the status 'Completed', and an exit-log message indicating what was created.</li>
+				<li>The job can now be removed from the queue by mousing over the <i class="icon-cog"></i> icon and clicking the 'delete job' button.</li>
+			</ol>
+		</p>
+		<p>
+			The two main processes - generating the CSV file, and generating new links and entries - are run asynchronously in the background, and will be queued if two or more job are started simultaneously. The process of generating the CSV file should usually take only a few seconds, but the generation of new links and entries can take several minutes if it's a large import (a complete dictionary or similar).
+		</p>
+	</div>
+
+	<div class="well" id="zip">
+		<h3>Zip contents</h3>
+		<p>
+			The zip file can have any name (so long as it's distinct from zips used for other jobs), but must have a '.zip' extension. The zip should contain one configuration file and one or more XML documents. (The XML documents should use the same data model; if you are importing content from different data models, these should be treated as separate jobs.)
+		</p>
+		<p>
+			The zip can have any directory structure; all subdirectories will be checked for relevant content.
+		</p>
+		<p>
+			The configuration file can have any any name, but must have a '.ini' extension. There should be only one config file in the zip.
+		</p>
+		<p>
+			The XML files(s) can have any any name, but must have a '.xml' extension. If there are more then one .xml files in the zip, they will be processed in filename order (or filepath order, if in different subdirectories).
+		</p>
+		<p>
+			If the zip does not conform to these requirements, the job will be rejected as invalid, and should be deleted. 
+		</p>
+		<p>
+			Some sample zips can be downloaded from the <a href="{% url 'gel_info' page='documents' %}">Documents</a> page.
+		</p>
+	</div>
+
+	<div class="well" id="config">
+		<h3>Configuration file</h3>
+		<p>
+			Each job should have a single configuration file contained in the zip, with a .ini extension. The configuration file uses the standard Windows INI format.
+		</p>
+		<p>
+			The configuration file is used primarily to give information about the resource, and to guide the process of parsing the XML document(s). Given that the XML document may use an arbitrary data model, the configuration file specifies how to find and evaluate the salient elements.
+		</p>
+
+		<h4>Documentation</h4>
+		<p>
+			The config files are self-documenting. See the following sample files:
+			<ul>
+				<li>Example illustrating an unregistered resource, XPath to subentries, and non-standard parts of speech: <a href="/static/gel2/importsamples/configsample-1.ini">configsample-1.ini</a></li>
+				<li>Example illustrating a pre-registered resource, no subentries, and the use of namespaces: <a href="/static/gel2/importsamples/configsample-2.ini">configsample-2.ini</a></li>
+			</ul>
+		</p>
+
+		<h4>Namespaces</h4>
+		<p>
+			Read the notes on XML namespaces carefully, in particular the treatment of default namespaces. Because XPath does not have a concept of default namespaces, an explicit prefix must be defined and then used for any elements declared within the default namespace. The prefix can be any arbitrary string.
+		</p>
+		<p>
+			For example, if the document defines a default namespace <code>xmlns="urn:DPS2-metadata"</code>, you could give this the dummy prefix <code>dpsdefault</code> and list it in the config file's '[namespaces]' section as <code>dpsdefault: urn:DPS2-metadata</code>.
+		</p>
+		<p>
+			Elements declared in the default namespace, which will be unprefixed in the data itself, shoud be given this prefix in an XPath expression. For example, an element which appears as <code>&lt;hw&gt;</code> in the data should be specified in XPath expressions as <code>dpsdefault:hw</code>.
+		</p>
+
+		<h4>Registering resources</h4>
+		<p>
+			If the resource has already been registered in GEL2 (either manually, or through a previous import job), the '[resourceDetails]' section of the config file will be largely ignored. All that's needed in this case is the <code>id</code> value for the resource, which can be found in the first column of the list in the <a href="{% url 'gel_resources' %}">Resources</a> page.
+		</p>
+		<p>
+			If the the resource has not already been registered (i.e. does not appear in the <a href="{% url 'gel_resources' %}">Resources</a> page), the <code>id</code> value should be left blank or set to 'none', and the other values of the '[resourceDetails]' section should be completed. The resource will be automatically registered and assigned an ID as part of the import process, using these details.
+		</p>
+		<p>
+			As with any resource, you can edit the details later through the <a href="{% url 'gel_resources' %}">Resources</a> page.
+		</p>
+	</div>
+
+	<div class="well" id="csv">
+		<h3>CSV file</h3>
+		<p>
+			The CSV file will be generated with a filename in the form 'job-n.csv', where 'n' is the job ID. Download a sample CSV file <a href="/static/gel2/importsamples/job-15.csv">here</a>.
+		</p>
+		<p>
+			The CSV file starts with a row of column headers, followed by a row for each entry and subentry located in the XML document(s). The row of headers should be left unchanged (and must be the first row in the file). Any other row may be edited or deleted.
+		</p>
+		<p>
+			The CSV file has the following columns:
+			<table class="table table-bordered">
+				<tbody>
+				<tr>
+					<td><code>lemma</code></td>
+					<td>The lemma of the entry.</td>
+				</tr>
+				<tr>
+					<td><code>entryID</code></td>
+					<td>The entry ID in the XML document.</td>
+				</tr>
+				<tr>
+					<td><code>nodeID</code></td>
+					<td>The node or element ID in the XML document, if the row represents a subentry. (Blank if the row represents a main entry.)</td>
+				</tr>
+				<tr>
+					<td><code>wordclass</code></td>
+					<td>The Penn code corresonding to the first or main wordclass block of the entry or subentry.</td>
+				</tr>
+				<tr>
+					<td><code>definition</code></td>
+					<td>The entry or subentry's first definition (truncated to 100 characters).</td>
+				</tr>
+				<tr>
+					<td><code>matched</code></td>
+					<td>Has the value 'MATCHED' if the entry was matched to an existing GEL2 record, or 'NEW' if not. A row with a 'MATCHED' value will generate a new link from an existing entry record; a row with a 'NEW' value will generate a new entry record.</td>
+				</tr>
+				<tr>
+					<td><code>exitStatus</code></td>
+					<td>Initially set to 'null'; after the import job has been completed, this will be changed to indicate whether or not the import was successful.</td>
+				</tr>
+				</tbody>
+			</table>
+		</p>
+		<p>
+			Where an entry has been matched to an existing GEL2 record (i.e. the <code>matched</code> column has the value 'MATCHED'), the row will also have the following columns:
+			<table class="table table-bordered">
+				<tbody>
+				<tr>
+					<td><code>recordID</code></td>
+					<td>The ID of the GEL2 Entry record</td>
+				</tr>
+				<tr>
+					<td><code>recordLabel</code></td>
+					<td>The record's label (lemma)</td>
+				</tr>
+				<tr>
+					<td><code>recordDefinition</code></td>
+					<td>The record's primary definition (i.e. the definition of its first wordclass).</td>
+				</tr>
+				<tr>
+					<td><code>alternatives</code></td>
+					<td>The number of other GEL2 record that were evaluated as possible matches. A value of 1 or more may alert the user that the present match was selected heuristically, and that other possibilities were available.</td>
+				</tr>
+				</tbody>
+			</table>
+		</p>
+
+		<h4>Required columns</h4>
+		<p>
+			Some columns are provided primarily to assist the user in evaluating the content, and are not strictly required by the import process itself. The equired columns are as follows:
+			<ul>
+				<li>For rows with a 'MATCHED' value: <code>entryID</code>, <code>nodeID</code> (subentries only), <code>matched</code></td> (= 'MATCHED'), <code>recordID</code>.</li>
+				<li>For rows with a 'NEW' value: <code>entryID</code>, <code>nodeID</code> (subentries only), <code>wordclass</code>, <code>definition</code>, <code>matched</code> (= 'NEW').</li>
+			</ul>
+		</p>
+		<p>
+			In principle, other columns can be left blank when editing the file. However, it's advisable to include them in order to make the file human-readable.
+		</p>
+
+		<h4>Editing the CSV file</h4>
+		<p>
+			Once the CSV file has been generated, you can download it by clicking the <i class="icon-download-alt"></i> icon; the file can then be reviewed, edited, re-saved, and uploaded back to the site.
+		</p>
+		<p>
+			The first row of the file, containing the column headers, should be left unchanged, and must be left as the first line. Other lines may be edited or deleted in cases where the matching process has made an error. Bear in mind that each row with a 'MATCHED' value will generate a new link from an existing GEL2 records; each row with a 'NEW' value will generate a new record.
+		</p>
+		<p>
+			In particular, it's worth checking rows where the <code>alternatives</code> column has a value of 1 or more. This indicates that 1 or more other GEL2 records (homographs or near-homographs) were evaluated as possible matches. It's therefore likely that the selected match was chosen heuristically, and may be subject to error. (In cases of homographs, the matching process will tend to prefer the GEL2 record with the highest frequency, which is usually but not always correct.)
+		</p>
+		<p>
+			When saving the file, make sure that it's saved as a CSV file with a .csv extension, <em>not</em> as a MS Excel .xls or .xlsx file. Upload the edited version by clicking the <i class="icon-refresh"></i> icon. (The edited version need not have the same name as the original version; the original version will be replaced in either case.)
+		</p>
+	</div>
+
+	<div class="well" id="import">
+		<h3>Running the import</h3>
+		<p>
+			Once the CSV file has been generated, edited, and re-loaded, the import process itself can be run by clicking 'import from CSV'. This process runs asynchronously in the background, so you may need to refresh the page to check whether it has finished. Depending on the size of the CSV file - and particularly the number of new entries that have to be generated - the job may take several minutes to complete.
+		</p>
+
+		<h4>New links</h4>
+		<p>
+			For each 'MATCHED' row in the CSV file, the import process will attempt to create a new link between the existing GEL2 record and the entry or subentry in the imported resource. This will fail if the GEL2 record can't be found - e.g. if there's an erroneous ID number in the <code>recordID</code> column, or if the record in question has been deleted since the CSV file was generated. If an identical link already exists, it won't be duplicated: such cases are logged as 'redundant'.
+		</p>
+
+		<h4>New records</h4>
+		<p>
+			For each 'NEW' row in the CSV file, the import process will attempt to create a new GEL2 record using the lemma, wordclass, and definition provided. It will then create a link between this record and the entry or subentry in the imported resource. The record-creation operation follows the model described in the main <a href="{% url 'gel_info' page='help' %}#creating">help</a> page.
+		</p>
+
+		<h4>Exit log</h4>
+		<p>
+			When the import process finishes, the row in the import jobs table shows the status 'Completed', with a time stamp and a short exit-log message. In the background, the CSV file's <code>exitStatus</code> column has been updated to indicate the success or failure of each import job. Download the CSV file to keep a record of what was done in the course of the import job.
+		</p>
+	</div>
+
+	<div class="well" id="rollback">
+		<h3>Roll-back</h3>
+		<p>
+			Once a job has been completed, it can be rolled back by mousing over the <i class="icon-cog"></i> icon in the jobs list and clicking the 'roll-back' button. This deletes all the new links and new entries created by the job, and resets the job status to 'ready to import'.
+		</p>
+		<p>
+			Note that if a new resource has been registered as part of the job, roll-back will not remove it from the resource list. To remove the resource from the resource list, go to the <a href="{% url 'gel_resources' %}">Resources</a> page and click 'delete resource'.
+		</p>
+	</div>
+
+	<div class="well" id="splitting">
+		<h3>Splitting an import into multiple jobs</h3>
+		<p>
+			A given resource need not be imported as a single job. For larger dictionaries, it may be more practical to split the dictionary data into smaller chunks (say, letter sections), and treat these as separate jobs. Each letter section would then need to be put in a separate XML document, in its own zip with its own config file. However, identical copies of the config file can  be used: there should be no need for the config files to differ from each other.
+		</p>
+		<p>
+			If adopting this approach, it's advisable to register the resource manually through the <a href="{% url 'gel_editor' action='add' level='resource' id='0' %}">Add Resource</a> page, rather than through the config file. The config files then need only give a reference to the resource's ID.
+		</p>
+		<p>
+			It's also advisable to prepare all the import jobs in advance, including generating, editing, and reloading the CSV, so that all the jobs have the status 'ready to import'. The imports can then be run sequentially, minimizing the risk of incompleteness in the database.
+		</p>
+	</div>
+{% endblock %}

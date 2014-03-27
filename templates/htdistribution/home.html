@@ -1,0 +1,44 @@
+{% extends "htdistribution/base.html" %}
+
+{% block page_title %}
+home
+{% endblock %}
+
+{% block pagecontent %}
+	<div class="hero-unit">
+		<h1>Historical Thesaurus distribution</h1>
+		<p>Explore distribution patterns of OED content in the Historical Thesaurus</p>
+	</div>
+
+	<div class="row-fluid">
+		<div class="span4 well">
+			<h2>Authors</h2>
+			<p>How are quotations from particular authors distributed across the thesaurus?</p>
+			<p><a class="btn btn-primary" href="{% url 'htdistribution_list' setname='author' %}">&nbsp;<i class="icon-chevron-right icon-white"></i>&nbsp;</a></p>
+		</div>
+		<div class="span4 well">
+			<h2>Languages</h2>
+			<p>How are the senses of words derived from particular languages distributed across the thesaurus?</p>
+			<p><a class="btn btn-primary" href="{% url 'htdistribution_list' setname='language' %}">&nbsp;<i class="icon-chevron-right icon-white"></i>&nbsp;</a></p>
+		</div>
+		<div class="span4 well">
+			<h2>Compounds</h2>
+			<p>How are compounds formed with particular words distributed across the thesaurus?</p>
+			<p><a class="btn btn-primary" href="{% url 'htdistribution_list' setname='compound' %}">&nbsp;<i class="icon-chevron-right icon-white"></i>&nbsp;</a></p>
+		</div>
+	</div>
+	<div class="row-fluid">
+		<div class="span4 well">
+			<h2>Collections</h2>
+			<p>Sets of elements can be stored as collections. Elements within a collection can be compared to measure similarities and differences between them.</p>
+			<p><a class="btn btn-primary" href="{% url 'htdistribution_collections' %}">&nbsp;<i class="icon-chevron-right icon-white"></i>&nbsp;</a></p>
+		</div>
+		<div class="span4 well">
+			<h2>Taxonomy</h2>
+			<p>View the levels of the thesaurus taxonomy implemented in this application.</p>
+			<p><a class="btn btn-primary" href="{% url 'htdistribution_taxonomy' %}">&nbsp;<i class="icon-chevron-right icon-white"></i>&nbsp;</a></p>
+		</div>
+	</div>
+
+{% endblock %}
+

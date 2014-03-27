@@ -1,0 +1,84 @@
+{% extends "gel2/base.html" %}
+
+{% block page_title %}
+{{ page_title }}
+{% endblock %}
+
+{% block pagecontent %}
+	<div class="hero-unit subhero">
+		<h2>{{ body_title }}</h2>
+		<p>Query terms: {{ params }}</p>
+	</div>
+
+	<div class="buttonContainer">
+		<i class="icon-cog"></i>
+		<div class="btn-group hoverButtons">
+			<a class="btn btn-small btn-primary" href="{% url 'gel_search' %}">Refine search</a>
+			{% if results %}
+				<a class="btn btn-small btn-danger deleteModalSwitch" href="#">Delete all records</a>
+			{% endif %}
+		</div>
+	</div>
+
+	{% if results %}
+		{% include "gel2/includes/pagination.html" %}
+		<table class="table table-bordered table-hover">
+			<thead>
+				<th>#</th>
+				<th>Lemma</th>
+				<th>Details</th>
+				<th>ID</th>
+			</thead>
+			<tbody>
+				{% for r in results %}
+				<tr>
+					<td>{{ forloop.counter0|add:results.start_index }}</td>
+					<td><h3><a href="{{ r.get_absolute_url }}">{{ r.label }}{% if r.obsolete %} &#x2020;{% endif %}</a></h3></td>
+					<td>
+						<b>{{ r.wordclass_list }}</b>&nbsp;&nbsp;
+						{% if r.definition %}&ldquo;{{ r.definition }}...&rdquo;{% else %}[undefined]{% endif %}
+						<ul class="inline">
+							{% for l in r.links %}
+								<li>{{ l.html|safe }}</li>
+							{% endfor %}
+						</ul>
+					</td>
+					<td>{{ r.id }}</td>
+				</tr>
+				{% endfor %}
+			</tbody>
+		</table>
+		{% include "gel2/includes/pagination.html" %}
+	{% endif %}
+{% endblock %}
+
+
+
+{% block hidden_elements %}
+	<div class="modal hide" id="deleteModal">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="icon-remove"></i></button>
+			<h3>Delete all records</h3>
+		</div>
+		<div class="modal-body" id="deleteModalContents">
+			<p>Are you sure you want to delete all records in this results set?<p>
+			<p>Note that all child objects will also be deleted (wordclasses, types, frequency tables, links, etc.).</p>
+			<p>This action cannot be undone.</p>
+			<div class="btn-group">
+				<button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Cancel</button>
+				<a class="btn btn-danger" href="{{ delete_url }}">Continue</a>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+		</div>
+	</div>
+{% endblock %}
+
+
+{% block extrascript %}
+	$('a.deleteModalSwitch').click( function(event) {
+		$('#deleteModal').modal('show');
+		event.preventDefault() ;
+	}) ;
+{% endblock %}

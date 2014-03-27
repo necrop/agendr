@@ -1,0 +1,15 @@
+{% extends "gel2/base.html" %}
+
+{% block pagecontent %}
+	<div class="hero-unit subhero">
+		<h1>GEL2: {% block header %}{% endblock %}</h1>
+	</div>
+
+	<div class="row">
+		<div class="span6 offset1">
+			{% block infotext %}
+			{% endblock %}
+		</div>
+	</div>
+
+{% endblock %}

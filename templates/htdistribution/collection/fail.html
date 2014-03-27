@@ -1,0 +1,18 @@
+{% extends "htdistribution/base.html" %}
+
+{% block page_title %}
+collection
+{% endblock %}
+
+{% block pagecontent %}
+<div class="hero-unit subhero">
+	<h2>Invalid collection</h2>
+</div>
+
+<p>Unable to create a collection; at least two {{ setname }}s should be selected.</p>
+<p>
+	<a class="btn btn-primary" href="{% url 'htdistribution_list' setname=setname %}">
+		<i class="icon-repeat icon-white"></i> Return to {{ setname }} list
+	</a>
+</p>
+{% endblock %}

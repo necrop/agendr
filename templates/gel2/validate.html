@@ -1,0 +1,83 @@
+{% extends "gel2/base.html" %}
+
+{% block page_title %}
+validation
+{% endblock %}
+
+{% block pagecontent %}
+	<div class="hero-unit subhero">
+		<h2>Validation</h2>
+	</div>
+
+	<div class="row">
+		<div class="span10 wordclassblock well">
+			<h3>Check content</h3>
+
+	<form class="form-horizontal" action="{% url 'gel_submitsearch' %}" method="post">
+		{% csrf_token %}
+		<fieldset>
+			<div class="control-group">
+				<label class="control-label">Range:</label>
+				<div class="controls">
+					<input type="text" name="lemmaFrom"/> to <input type="text" name="lemmaTo"/>
+					{% include 'gel2/includes/q_popover.html' with text="Select the lemma range that will be checked, e.g. 'm to mazz'. Note that some validation checks take a long time to run, so it's advisable to use shorter ranges." %}
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">Check for:</label>
+				<div class="controls">
+					<select name="validationCheck">
+						<option value="unlinked">entries with no links to external resources</option>
+						<option value="missingWordclass">entries with no wordclass records</option>
+						<option value="duplicateWordclass">entries with duplicate wordclasses</option>
+						<option value="missingType">entries missing a type record for the base wordclass</option>
+						<option value="lemmaMismatch">entry lemma not found in types</option>
+					</select>
+				</div>
+			</div>
+				<div class="control-group">
+					<div class="controls">
+						<button type="submit" class="btn btn-small btn-primary">Submit</button>
+					</div>
+				</div>
+		<fieldset>
+	</form>
+	</div>
+	</div>
+
+
+	<div class="row">
+		<div class="span10">
+			<h3>Database integrity</h3>
+			<p>
+				<em>Checks for database records that are not attached to parent Entry records.</em>
+			</p>
+			<table class="table table-bordered table-hover">
+				<tbody>
+					<tr>
+						<td>Orphan wordclass records</td>
+						<td>0</td>
+						<td><i class="icon-cog"></i></td>
+					</tr>
+					<tr>
+						<td>Orphan type records</td>
+						<td>0</td>
+						<td><i class="icon-cog"></i></td>
+					</tr>
+					<tr>
+						<td>Orphan frequency tables</td>
+						<td>0</td>
+						<td><i class="icon-cog"></i></td>
+					</tr>
+					<tr>
+						<td>Orphan link objects</td>
+						<td>0</td>
+						<td><i class="icon-cog"></i></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+{% endblock %}
+

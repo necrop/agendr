@@ -1,0 +1,107 @@
+{% extends "gel2/base.html" %}
+
+{% block page_title %}
+advanced search
+{% endblock %}
+
+{% block pagecontent %}
+	<div class="hero-unit subhero">
+		<h2>Advanced search</h2>
+	</div>
+
+	<form class="form-horizontal" action="{% url 'gel_submitsearch' %}" method="post">
+		{% csrf_token %}
+		<fieldset>
+			<div class="control-group">
+				<label class="control-label">Lemma:</label>
+				<div class="controls">
+					<input type="text" name="lemma" placeholder="Lemma" value="{{ previously.lemma }}"/>
+					{% include 'gel2/includes/q_popover.html' with text="Enter query in downcased form, without diacritics or hyphens. You can give a simple lemma, e.g. 'knight', a prefix with wildcard, e.g. 'kn*', or a range, e.g. 'kn-kozz'." %}
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">Wordclass:</label>
+				<div class="controls">
+					<select name="wordclass">
+						<option value="null">-</option>
+						{% for w in wordclasses %}
+							<option value="{{ w.0 }}" {% if w.0 == previously.wordclass %}selected="selected"{% endif %}>{{ w.1 }}</option>
+						{% endfor %}
+					</select> &nbsp;&nbsp;
+					<small>-reverse</small> <input type="checkbox" name="wordclassreverse"/>
+					{% include 'gel2/includes/q_popover.html' with text="Finds entries which contain the selected wordclass. Tick the 'reverse' checkbox to invert the selection (i.e. to exclude entries which contain the selected wordclass)." %}
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">Linked to:</label>
+				<div class="controls">
+					<select name="linkedto">
+						<option value="null">-</option>
+						{% for r in resources %}
+							<option value="{{ r.id }}" {% if r.id == previously.linkedto %}selected="selected"{% endif %}>{{ r.label }}</option>
+						{% endfor %}
+						<option value="unlinked">unlinked</option>
+					</select> &nbsp;&nbsp;
+					<small>-reverse</small> <input type="checkbox" name="linkedreverse"/>
+					{% include 'gel2/includes/q_popover.html' with text="Finds entries with at least one link to the selected resource. Tick the 'reverse' checkbox to invert the selection (i.e. to exclude entries linked to the selected resource)." %}
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">Status:</label>
+				<div class="controls">
+					<select name="status">
+						<option value="null">-</option>
+						<option value="current" {% if previously.status == 'current' %}selected="selected"{% endif %}>current only</option>
+						<option value="obs" {% if previously.status == 'obs' %}selected="selected"{% endif %}>obsolete only</option>
+					</select>
+					{% include 'gel2/includes/q_popover.html' with text="Lorem ipsum" %}
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">Topic:</label>
+				<div class="controls">
+					<select name="topic">
+						<option value="null">-</option>
+						{% for t in topics %}
+							<option value="{{ t.id }}" {% if t.id == previously.topic %}selected="selected"{% endif %}>{{ t.indented }}</option>
+						{% endfor %}
+					</select>
+					{% include 'gel2/includes/q_popover.html' with text="Lorem ipsum" %}
+				</div>
+			</div>
+			<div class="control-group">
+				<label class="control-label">Created/edited:</label>
+				<div class="controls">
+					<select name="lastedited">
+						<option value="null">-</option>
+						{% for t in timestamps %}
+							<option value="{{ t.0 }}" {% if t.0 == previously.lastedited %}selected="selected"{% endif %}>{{ t.1 }}</option>
+						{% endfor %}
+					</select>
+					{% include 'gel2/includes/q_popover.html' with text="Lorem ipsum" %}
+				</div>
+			</div>
+			{% comment %}
+			<div class="control-group">
+				<label class="control-label">Sort by:</label>
+				<div class="controls">
+					<select name="sort">
+						<option value="null">lemma (alphabetically)</option>
+						<option value="freqhigh">frequency (highest first)</option>
+						<option value="freqlow">frequency (lowest first)</option>
+						<option value="datestamp">datestamp (recently-edited first)</option>
+						<option value="datestamp">datestamp (recently-edited last)</option>
+					</select>{% include 'gel2/includes/q_popover.html' with text="Lorem ipsum" %}
+				</div>
+			</div>
+			{% endcomment %}
+			<div class="control-group">
+				<div class="controls">
+					<button type="submit" class="btn btn-primary">Submit</button>
+				</div>
+			</div>
+		<fieldset>
+	</form>
+
+{% endblock %}
+

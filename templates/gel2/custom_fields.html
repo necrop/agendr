@@ -1,0 +1,282 @@
+{% extends "gel2/base.html" %}
+{% load gel2_extras %}
+
+{% block pagecontent %}
+	<div class="hero-unit subhero">
+		<h1>Custom fields</h1>
+		<p>Add/edit/delete custom fields for Entry, Wordclass, and Type records</p>
+	</div>
+
+	{% for l in form.existing_fields %}
+		<div class="row">
+		<div class="span10 well">
+			<h3>{{ l.level|capfirst }}</h3>
+			{% for c in l.fields %}
+				<div class="row">
+				<div class="span8 offset1">
+					<h4>'{{ c.name|capfirst }}' &nbsp;&nbsp; [{{ c.type }}]</h4>
+					<form class="form-horizontal" action="{% url 'gel_customedit' %}" method="post">
+						{% csrf_token %}
+						<fieldset>
+							<div class="control-group">
+								<label class="control-label">Name:</label>
+								<div class="controls">
+									<input type="text" name="name" value="{{ c.name }}"/>
+								</div>
+							</div>
+							<div class="control-group">
+								<label class="control-label">Description:</label>
+								<div class="controls">
+									<input type="text" class="input-xxlarge" name="description" value="{% if c.description %}{{ c.description }}{% endif %}"/>
+								</div>
+							</div>
+							{% if c.type == 'select' %}
+								<div class="control-group">
+									<label class="control-label">Choices:</label>
+									<div class="controls">
+										<input type="text" class="input-xxlarge" name="choices" value="{{ c.choices }}"/>
+									</div>
+								</div>
+							{% endif %}
+							{% if c.type == 'url template' %}
+								<div class="control-group">
+									<label class="control-label">URL template:</label>
+									<div class="controls">
+										<input type="text" class="input-xlarge" name="urltemplate" value="{{ c.urltemplate }}"/>
+									</div>
+								</div>
+							{% endif %}
+							<div class="control-group">
+								<label class="control-label">Default value:</label>
+								<div class="controls">
+									{% if c.type == 'boolean' %}
+										<select name="default">
+											<option value="null" {% if c.default|is_none %}selected="selected"{% endif %}>[null]</option>
+											<option value="True" {% if c.default %}selected="selected"{% endif %}>True</option>
+											<option value="False" {% if c.default|is_false %}selected="selected"{% endif %}>False</option>
+										</select>
+									{% else %}
+										{% if c.type == 'select' %}
+											<select name="default">
+												<option value="null">[null]</option>
+												{% for o in c.choiceslist %}
+													<option value="{{ o }}" {% if o == c.default %}selected="selected"{% endif %}>{{ o }}</option>
+												{% endfor %}
+											</select>
+										{% else %}
+											<input type="text" name="default" value="{% if c.default %}{{ c.default }}{% endif %}"/>
+											{% if c.type == 'text' %}
+												{% include "gel2/includes/q_popover.html" with text="Leave blank for a default value of 'null'" %}
+											{% endif %}
+											{% if c.type == 'integer' %}
+												{% include "gel2/includes/q_popover.html" with text="Must be an integer value, e.g. 29. Leave blank for a default value of 'null'" %}
+											{% endif %}
+											{% if c.type == 'float' %}
+												{% include "gel2/includes/q_popover.html" with text="Must be a float value, e.g. 3.76. Leave blank for a default value of 'null'" %}
+											{% endif %}
+										{% endif %}
+									{% endif %}
+								</div>
+							</div>
+							<input type="hidden" name="recordid" value="{{ c.id }}"/>
+							<input type="hidden" name="action" value="edit"/>
+							<div class="control-group">
+								<div class="controls">
+									<div class="btn-group">
+										<a class="btn btn-small btn-danger deleteModalSwitch" href="{% url 'gel_customdelete' id=c.id %}"><i class="icon-trash icon-white"></i> delete field</a>
+										<button type="submit" class="btn btn-small btn-primary">submit changes</button>
+									</div>
+								</div>
+							</div>
+						</fieldset>
+					</form>
+				</div>
+				</div>
+			{% endfor %}
+			{% if not l.fields %}
+				<div class="row">
+					<div class="span8 offset1">
+						<h4>[No custom fields have been set]</h4>
+					</div>
+				</div>
+			{% endif %}
+		</div>
+		</div>
+	{% endfor %}
+
+	<div class="row">
+	<div class="span10 wordclassblock well">
+		<h3>Add custom field</h3>
+		<form class="form-horizontal" action="{% url 'gel_customedit' %}" method="post">
+			{% csrf_token %}
+			<fieldset>
+				<div class="control-group">
+					<label class="control-label">Level:</label>
+					<div class="controls">
+						<select name="level">
+							{% for m in form.levels_list %}
+								<option value="{{ m }}">{{ m }}</option>
+							{% endfor %}
+						</select>
+						{% include "gel2/includes/q_popover.html" with text="The type of record for which the field will be used" %}
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">Name:</label>
+					<div class="controls">
+						<input type="text" name="name"/>
+						{% include "gel2/includes/q_popover.html" with text="Short name of the field (used in search, entry display, API, etc.)" %}
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">Description:</label>
+					<div class="controls">
+						<input type="text" class="input-xxlarge" name="description"/>
+						{% include "gel2/includes/q_popover.html" with text="Longer description of the field (optional)" %}
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">Type:</label>
+					<div class="controls">
+						<select name="type" id="typeselector">
+							{% for t in form.types_list %}
+								<option value="{{ t }}">{{ t }}</option>
+							{% endfor %}
+						</select>
+						{% include "gel2/includes/q_popover.html" with text="The type of value allowed" %}
+					</div>
+				</div>
+				<div class="control-group" id="default-text-section">
+					<label class="control-label">Default value:</label>
+					<div class="controls">
+						<input type="text" id="default-text" name="default-text"/>
+						{% include "gel2/includes/q_popover.html" with text="The value used for any record where the field has not been explicitly set. Leave blank for a default value of 'null'" %}
+					</div>
+				</div>
+				<div class="control-group" id="default-boolean-section">
+					<label class="control-label">Default value:</label>
+					<div class="controls">
+						<select name="default-boolean">
+							<option value="null">[null]</option>
+							<option value="True" selected="selected">True</option>
+							<option value="False">False</option>
+						</select>
+						{% include "gel2/includes/q_popover.html" with text="The value used for any record where the field has not been explicitly set" %}
+					</div>
+				</div>
+				<div class="control-group" id="choices-section">
+					<label class="control-label">Choices:</label>
+					<div class="controls">
+						<input type="text" class="input-xxlarge" name="choices" placeholder="e.g. English|French|German"/>
+						{% include "gel2/includes/q_popover.html" with text="The set of options available. Use the pipe character ('|') as a separator" %}
+					</div>
+				</div>
+				<div class="control-group" id="urltemplate-section">
+					<label class="control-label">URL template:</label>
+					<div class="controls">
+						<input type="text" class="input-xlarge" name="urltemplate" placeholder="e.g. http://en.wikipedia.org/wiki/{% verbatim %}{{PARAM}}{% endverbatim %}"/>
+						{% include "gel2/includes/q_popover.html" with text="The template used to construct a URL. Use {{PARAM}} to indicate the point where the field's value should be inserted" %}
+					</div>
+				</div>
+				<div class="control-group" id="default-select-section">
+					<label class="control-label">Default value:</label>
+					<div class="controls">
+						<input type="text" name="default-select"/>
+						{% include "gel2/includes/q_popover.html" with text="The value used for any record where the field has not been explicitly set. This should be one of the values given in the 'choices' list above. Leave blank for a default value of 'null'" %}
+					</div>
+				</div>
+				<input type="hidden" name="recordid" value="0"/>
+				<input type="hidden" name="action" value="add"/>
+				<div class="control-group">
+					<div class="controls">
+						<button type="submit" class="btn btn-small btn-primary">Submit</button>
+					</div>
+				</div>
+			</fieldset>
+		</form>
+	</div>
+	</div>
+{% endblock %}
+
+
+{% block hidden_elements %}
+	<div class="modal hide" id="deleteModal">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+			<h3>Delete field</h3>
+		</div>
+		<div class="modal-body" id="deleteModalContents">
+			<p>Are you sure you want to delete this field?</p>
+			<div class="btn-group">
+				<button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Cancel</button>
+				<a class="btn btn-danger" href="#" id="deleteModalContinue">Continue</a>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+		</div>
+	</div>
+{% endblock %}
+
+
+{% block extrascript %}
+	$('#default-boolean-section').hide();
+	$('#default-select-section').hide();
+	$('#choices-section').hide();
+	$('#urltemplate-section').hide();
+
+	$('select#typeselector').bind('change', function () {
+		var fieldtype=$(this).val();
+		if (fieldtype == 'text' || fieldtype == 'integer' || fieldtype == 'float' || fieldtype == 'url') {
+			$('#default-boolean-section').hide();
+			$('#default-select-section').hide();
+			$('#choices-section').hide();
+			$('#urltemplate-section').hide();
+			$('#default-text-section').show();
+		}
+		if (fieldtype == 'select') {
+			$('#default-boolean-section').hide();
+			$('#default-select-section').show();
+			$('#choices-section').show();
+			$('#urltemplate-section').hide();
+			$('#default-text-section').hide();
+		}
+		if (fieldtype == 'url template') {
+			$('#default-boolean-section').hide();
+			$('#default-select-section').show();
+			$('#choices-section').hide();
+			$('#urltemplate-section').show();
+			$('#default-text-section').hide();
+		}
+		if (fieldtype == 'boolean') {
+			$('#default-boolean-section').show();
+			$('#default-select-section').hide();
+			$('#choices-section').hide();
+			$('#default-text-section').hide();
+			$('#urltemplate-section').hide();
+		}
+		if (fieldtype == 'text') {
+			$('input#default-text').attr("placeholder", "");
+		}
+		if (fieldtype == 'integer') {
+			$('input#default-text').attr("placeholder", "e.g. 1876");
+		}
+		if (fieldtype == 'float') {
+			$('input#default-text').attr("placeholder", "e.g. 2.73");
+		}
+		if (fieldtype == 'url') {
+			$('input#default-text').attr("placeholder", "e.g. http://en.wikipedia.org/wiki/Berlin");
+		}
+		if (fieldtype == 'url template') {
+			$('input#default-text').attr("placeholder", "e.g. Berlin");
+		}
+	}).change();
+
+
+	$('a.deleteModalSwitch').click( function(event) {
+		var href=$(this).attr('href');
+		$('#deleteModalContinue').attr('href', href);
+		$('#deleteModal').modal('show');
+		event.preventDefault() ;
+	}) ;
+{% endblock %}

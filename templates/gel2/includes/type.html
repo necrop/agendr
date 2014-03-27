@@ -1,0 +1,21 @@
+{% load humanize %}
+
+<h4>{{ type.identifier }}</h4>
+<ul>
+	<li>ID: {{ type.id }}</li>
+	<li>Last edited: {{ type.datestamp|naturaltime }}</li>
+	<li>{{ type.human_readable_variant|capfirst }}</li>
+	<li>{% include "gel2/includes/frequency_link.html" with obj=type %}</li>
+	{% include "gel2/includes/display_custom.html" with custom=type.custom_parsed %}
+</ul>
+
+<div class="buttonContainer">
+	<i class="icon-cog"></i>
+	<div class="btn-group hoverButtons">
+		{% include "gel2/includes/edit_button.html" with id=type.id action="edit" object="type" %}
+		{% if not type.solo %}
+			{% include "gel2/includes/edit_button.html" with id=type.id action="delete" object="type" %}
+		{% endif %}
+	</div>
+</div>
+

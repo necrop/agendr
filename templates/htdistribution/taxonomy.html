@@ -1,0 +1,37 @@
+{% extends "htdistribution/base.html" %}
+
+{% block page_title %}
+taxonomy
+{% endblock %}
+
+{% block pagecontent %}
+	<div class="hero-unit subhero">
+		<h2>Thesaurus taxonomy</h2>
+	</div>
+	<table class="table table-bordered table-hover">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Level</th>
+				<th>Branch size (senses)</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for t in classes %}
+				<tr>
+					<td>
+						<span style="font-size: {% if t.level == 1 %}1.8{% else %}{% if t.level == 2 %}1.4{% else %}1{% endif %}{% endif %}em;">
+							{{ t.indented }}
+						</span>{% include 'htdistribution/includes/oed_link.html' with oed_url=t.oed_url %}
+					</td>
+					<td>
+						{{ t.level }}
+					</td>
+					<td>
+						{{ t.size }}
+					</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+{% endblock %}

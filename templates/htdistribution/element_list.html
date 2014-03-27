@@ -1,0 +1,14 @@
+{% extends "htdistribution/base.html" %}
+
+{% block page_title %}
+{{ setname }}s
+{% endblock %}
+
+{% block pagecontent %}
+<div class="hero-unit subhero">
+	<h2>{{ setname|capfirst }}s</h2>
+</div>
+
+{% include 'htdistribution/includes/table_of_elements.html' with mode='main' elements=elements setname=setname %}
+
+{% endblock %}

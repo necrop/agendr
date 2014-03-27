@@ -1,0 +1,206 @@
+{% extends "gel2/base.html" %}
+{% load gel2_extras %}
+{% load humanize %}
+
+{% block pagecontent %}
+	<div class="hero-unit subhero">
+		<h1>Import jobs</h1>
+	</div>
+
+	<table class="table table-bordered">
+		<thead>
+			<th>ID</th>
+			<th>Job name</th>
+			<th>Zip file</th>
+			<th>CSV file</th>
+			<th>Status</th>
+			<th>Controls</th>
+		</thead>
+		<tbody>
+		{% if not jobs %}
+			<tr>
+				<td/>
+				<td>[No jobs in the queue]</td>
+				<td/>
+				<td/>
+				<td/>
+				<td/>
+			</tr>
+		{% endif %}
+		{% for j in jobs %}
+			<tr class="{% if j.status == 'completed' %}jobCompleted{% endif %}{% if j.status == 'running' %}jobRunning{% endif %}{% if j.status == 'ready to import' %}jobReady{% endif %}{% if j.status == 'invalid' %}jobInvalid{% endif %}">
+				<td>
+					{{ j.id }}
+				</td>
+				<td>
+					{{ j.name }}
+					{% include "gel2/includes/q_popover.html" with text=j.initiated|naturaltime|prepend:"Job added " %}
+				</td>
+				<td>
+					{{ j.zipname }}
+					<a href="{% url 'gel_importdownload' id=j.id type='zip' %}" data-content="Download zip file" rel="popover" data-toggle="popover"><i class="icon-download-alt"></i></a>
+				</td>
+				<td>
+					{% if j.csv %}
+						{{ j.csvname }}
+						<a href="{% url 'gel_importdownload' id=j.id type='csv' %}" data-content="Download CSV file" rel="popover" data-toggle="popover"><i class="icon-download-alt"></i></a>
+						<a href="#" data-content="Upload edited or replacement CSV file" rel="popover" data-toggle="popover" class="uploadCsv" jobid="{{ j.id }}"><i class="icon-refresh"></i></a>
+					{% endif %}
+				</td>
+				<td>
+					{{ j.status|capfirst }}
+					{% if j.status == 'running' %}
+						(started {{ j.importstarted }}){% include "gel2/includes/q_popover.html" with text="Refresh page to check status" %}
+					{% endif %}
+					{% if j.status == 'completed' %}
+						{{ j.importcompleted }}
+						<p>
+							Exit log
+							<a href="{% url 'gel_importdownload' id=j.id type='csv' %}" data-content="Download CSV file for details" rel="popover" data-toggle="popover"><i class="icon-download-alt"></i></a>:
+							<ul>
+							{% for l in j.exit_log %}
+								<li>&nbsp;&nbsp;{{ l }}</li>
+							{% endfor %}
+							</ul>
+						</p>
+					{% endif %}
+					{% if j.status == 'invalid' %}
+						{% include "gel2/includes/q_popover.html" with text="Zip should contain a .ini file and one or more .xml files" %}
+					{% endif %}
+				</td>
+				<td class="buttonContainer">
+					{% if j.status == 'running' %}
+					{% else %}
+						<i class="icon-cog"></i>
+						<div class="btn-group hoverButtons">
+							{% if j.status == 'awaiting CSV' %}
+								<a class="btn btn-small btn-primary" href="{% url 'gel_importprocess' id=j.id action='generatecsv' %}"><i class="icon-file icon-white"></i> generate CSV</a>
+							{% endif %}
+							{% if j.status == 'ready to import' %}
+								<a class="btn btn-small btn-success" href="{% url 'gel_importprocess' id=j.id action='import' %}"><i class="icon-upload icon-white"></i> import from CSV</a>
+							{% endif %}
+							{% if j.status == 'completed' %}
+								<a class="btn btn-small btn-success rollback" href="{% url 'gel_importprocess' id=j.id action='rollback' %}"><i class="icon-fast-backward icon-white"></i> roll back</a>
+							{% endif %}
+							<a class="btn btn-small btn-danger" href="{% url 'gel_importprocess' id=j.id action='delete' %}"><i class="icon-trash icon-white"></i> delete job</a>
+						</div>
+					{% endif %}
+				</td>
+			</tr>
+		{% endfor %}
+		</tbody>
+	</table>
+	<p>
+		See the <a href="{% url 'gel_info' page='importing' %}">Importing data</a> page for help.
+	</p>
+
+
+	<div class="row">
+		<div class="span10 wordclassblock well">
+		<h3>Add new job</h3>
+		<form class="form-horizontal" action="{% url 'gel_importnew' %}" method="post" enctype="multipart/form-data">
+			{% csrf_token %}
+			<fieldset>
+				<div class="control-group">
+					<label class="control-label">Name:</label>
+					<div class="controls">
+						<input type="text" name="name"/>
+						{% include "gel2/includes/q_popover.html" with text="Name that will be used to identify the job in the table above" %}
+					</div>
+				</div>
+				<div class="control-group">
+					<label class="control-label">Zip file:</label>
+					<div class="controls">
+						<input class="input-xxlarge" type="file" name="file">
+						{% include "gel2/includes/q_popover.html" with text="Zip should have .zip extension, and should include a config.ini configuration file and a .xml data document." %}
+					</div>
+				</div>
+				<div class="control-group">
+					<div class="controls">
+						<button type="submit" class="btn btn-small btn-primary">Upload</button>
+					</div>
+				</div>
+			</fieldset>
+		</form>
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="span10">
+			<a class="btn btn-small btn-danger" href="{% url 'gel_importrake' %}"><i class="icon-warning-sign icon-white"></i> rake</a>
+			{% include "gel2/includes/q_popover.html" with text="Delete all import jobs and clear the uploads directory" %}
+		</div>
+	</div>
+{% endblock %}
+
+
+{% block hidden_elements %}
+	<div class="modal hide" id="uploadCsvModal">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="icon-remove"></i></button>
+			<h3>Upload CSV file</h3>
+		</div>
+		<div class="modal-body" id="deleteModalContents">
+			<form class="form-horizontal" action="{% url 'gel_importcsv' %}" method="post" enctype="multipart/form-data">
+				{% csrf_token %}
+				<div class="control-group">
+					<label class="control-label">CSV file:</label>
+					<div class="controls">
+						<input class="input-xxlarge" type="file" name="file">
+						{% include "gel2/includes/q_popover.html" with text="File should have .csv extension." %}
+					</div>
+				</div>
+				<input id="modalJobidentifier" type="hidden" name="jobid" value=""/>
+				<div class="control-group">
+					<div class="controls">
+						<div class="btn-group">
+							<button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Cancel</button>
+						<button type="submit" class="btn btn-danger">Submit</button>
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
+		<div class="modal-footer">
+			<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+		</div>
+	</div>
+
+
+	<div class="modal hide" id="rollbackModal">
+		<div class="modal-header">
+			<button type="button" class="close" data-dismiss="modal" aria-hidden="true"><i class="icon-remove"></i></button>
+			<h3>Roll back</h3>
+		</div>
+		<div class="modal-body">
+			<p>Are you sure you want to roll back this job?</p>
+			<p>Roll-back will remove all new links and new entries created by the job.<p>
+			<p>Note that if a new resource was registered through this job, roll-back will not remove it from the resource list.
+			To remove the resource from the resource list, go to the <a href="{% url 'gel_resources' %}">Resources</a> page and click 'delete resource'.</p>
+			<div class="btn-group">
+				<button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Cancel</button>
+				<a class="btn btn-danger" href="#" id="rollbackModalContinue">Continue</a>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+		</div>
+	</div>
+{% endblock %}
+
+
+{% block extrascript %}
+	$('a.uploadCsv').click( function(event) {
+		var jobid=$(this).attr('jobid');
+		$('#modalJobidentifier').attr('value', jobid);
+		$('#uploadCsvModal').modal('show');
+		event.preventDefault() ;
+	}) ;
+
+	$('a.rollback').click( function(event) {
+		var href=$(this).attr('href');
+		$('#rollbackModalContinue').attr('href', href);
+		$('#rollbackModal').modal('show');
+		event.preventDefault() ;
+	}) ;
+{% endblock %}

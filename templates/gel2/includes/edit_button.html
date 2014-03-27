@@ -1,0 +1,5 @@
+
+<a href="{% url 'gel_editor' id=id action=action level=object %}" level="{{ object }}" class="btn btn-small {% if action == 'edit' %}btn-primary{% endif %}{% if action == 'delete' %}btn-danger deleteModalSwitch{% endif %}{% if action == 'move' %}btn-warning moveModalSwitch{% endif %}{% if action == 'merge' %}btn-warning mergeModalSwitch{% endif %}{% if action == 'add' %}btn-success{% endif %}">
+	<i class="icon-{% if action == 'edit' %}wrench{% endif %}{% if action == 'delete' %}trash{% endif %}{% if action == 'move' %}random{% endif %}{% if action == 'merge' %}random{% endif %}{% if action == 'add' %}plus{% endif %} icon-white"></i>
+	{% if action == 'add' %}add {{ child }}{% else %}{{ action }} {{ object }}{% endif %}
+</a>

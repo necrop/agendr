@@ -1,0 +1,437 @@
+{% extends "gel2/info/help_frame.html" %}
+
+{% block header_title %}
+API
+{% endblock %}
+
+{% block navlist %}
+	<li><a href="#usage">Usage</a></li>
+	<li><a href="#parametersyntax">Parameter syntax</a></li>
+	<li><a href="#pretty">Pretty-printing</a></li>
+	<li><a href="#search">Search</a></li>
+	<li><a href="#getentry">Getentry</a></li>
+	<li><a href="#findentry">Findentry</a></li>
+	<li><a href="#metadata">API metadata</a></li>
+{% endblock %}
+
+{% block textcontent %}
+
+	<div class="well" id="usage">
+		<h3>Usage</h3>
+		<p>
+			The GEL2 API is at <code>{{ server }}{% url 'gel_api' action='' %}</code>. The API may be used to search the GEL2 content, and to retrieve data from individual entries.
+		</p>
+		<p>
+			API requests take the form <code>.../api/requesttype?parameters</code>, where <code>requesttype</code> designates the type of request, and <code>parameters</code> is a query string containing the set of arguments appropriate to that request.
+		</p>
+		<p>
+			There are three main request types: <code>search</code>, <code>getentry</code>, and <code>findentry</code>:
+			<ul>
+				<li><code>search</code> is used to retrieve a set of entry IDs and core entry data matching specified search terms (e.g. entries with a given lemma, or entries linked to a given dictionary entry);</li>
+				<li><code>getentry</code> is used to retrieve the entry corresponding to a given ID: either all the data relating to that entry, or a subset of specified fields.</li>
+				<li><code>findentry</code> effectively chains <code>search</code> and <code>getentry</code> in a single operation: it searches for entries matching specified search terms, then returns entry data for the first result.</li>
+			</ul>
+			All request types return results in <a href="http://www.json.org/" target="ext">JSON</a> format.
+		</p>
+
+		<h4>Usage scenarios</h4>
+		<p>
+			It's assumed that typical usage of the API will involve a three-stage process: firstly, a <code>search</code> request to retrieve a set of GEL2 entries matching certain criteria; secondly, some client-side analysis of these results to determine which of these entries is required; thirdly, a <code>getentry</code> request to retrieve the full data for this entry.
+		</p>
+		<p>
+			For example, to retrieve frequency data for the word <i>kit</i>, a client application would pass a <code>search</code> request for <i>kit</i> (<a href="{% url 'gel_api' action='search' %}?lemma=kit&prettyPrint=true"><code>{% url 'gel_api' action='search' %}?lemma=kit&amp;prettyPrint=true</code></a>), which would return results for a number of <i>kit</i> homographs. Depending on requirements, the client might then pass a series of <code>getentry</code> requests to retrieve frequency data for each entry in turn. Mopre likely, the client application would determine which of the results provides the best match (say, based on wordclass and on the set of external resources to which each result is linked), and then pass a <code>getentry</code> request to retrieve frequency data for just that entry.
+		</p>
+		<p>
+			<code>findentry</code> can simplify this into a single API request, in cases where a query is expected to return a single result.
+		</p>
+	</div>
+
+	<div class="well" id="parametersyntax">
+		<h3>Parameter syntax</h3>
+		<p>
+			<ul>
+				<li>Parameters may be supplied in any order, separated by '&amp;';</li>
+				<li>Parameter names are case-insensitive: <code>PrettyPrint=true</code> and <code>prettyprint=true</code> work identically;</li>
+				<li>For boolean values, you can use 'y', 'yes', 'true', or 'True' for <code>True</code>, and 'n', 'no', 'false', or 'False' for <code>False</code>. (The examples given here use 'true' and 'false', but the other values could be used instead.)</li>
+			</ul>
+		</p>
+	</div>
+
+	<div class="well" id="pretty">
+		<h3>Pretty-printing</h3>
+		<p>
+			By default, the response is returned in compact and unsorted JSON format. However, you can add a <code>prettyPrint=true</code> parameter to format the response with indented lines and with fields sorted alphabetically.
+		</p>
+		<p>
+			All examples given here include the <code>prettyPrint</code> parameter in order to make the response easier to interpret.
+		</p>
+	</div>
+
+	<div class="well" id="search">
+		<h3>Search</h3>
+		<p>
+			Search requests take the form <code>.../api/search?parameters</code>
+		</p>
+
+		<h4>Query parameters</h4>
+		<p>
+			The set of query parameters is the same as those used in <a href="{% url 'gel_search' %}">advanced search</a>, and may be used in any combination:
+			<table class="table table-bordered">
+				<tbody>
+				<tr>
+					<td><code>lemma</code></td>
+					<td>Returns entries with a given lemma (case-, space-, and diacritic-insensitive). To return an alphabetic range, give a hyphenated range, e.g. <code>lemma=ka-kezz</code>. You can also use '*' as a wildcard, e.g. <code>lemma=kn*</code>.</td>
+				</tr>
+				<tr>
+					<td><code>status</code></td>
+					<td>['obs' and 'current'] If 'obs', returns obsolete entries (i.e. entries for which all wordclasses are obsolete). If 'current', returns non-obsolete entries (i.e. entries for which at least one wordclasses is not obsolete).</td>
+				</tr>
+				<tr>
+					<td><code>topic</code></td>
+					<td>Returns entries matching a given topic (either tagged with the topic itself, or tagged with anything on the topic's taxonomic branch). Value should either be the topic's numeric ID, or the topic's label (e.g. 'Religion').</td>
+				</tr>
+				<tr>
+					<td><code>lastEdited</code></td>
+					<td>Returns entries created or edited within the last x minutes; e.g. <code>lastEdited=60</code> returns entries created or edited within the last hour.</td>
+				</tr>
+				<tr>
+					<td><code>wordclass</code></td>
+					<td>Returns entries that include a wordclass record with the value specified. The value should be a <a href="http://www.comp.leeds.ac.uk/ccalas/tagsets/upenn.html" target="ext">Penn code</a>, e.g. 'NN', 'VB', 'JJ'.</td>
+				</tr>
+				<tr>
+					<td><code>wordclassreverse</code></td>
+					<td>[Boolean] If True, returns entries that do <i>not</i> include a wordclass record with the value specified by <code>wordclass</code>. (Ignored if no <code>wordclass</code> parameter is supplied.)</td>
+				</tr>
+				<tr>
+					<td><code>linkedTo</code></td>
+					<td>Returns entries that are linked to the external resource specified. The value should be the ID of the resource, as shown in the first column of the <a href="{% url 'gel_resources' %}">Resources</a> table.</td>
+				</tr>
+				<tr>
+					<td><code>linkedToReverse</code></td>
+					<td>[Boolean] If True, returns entries that are <i>not</i> linked to the resource specified by <code>linkedTo</code>. (Ignored if no <code>linkedTo</code> parameter is supplied.)</td>
+				</tr>
+				<tr>
+					<td><code>targetEntry</code></td>
+					<td>Returns entries linked to a specified dictionary entry in an external resource (specified by entry ID). Usually used in conjunction with <code>linkedTo</code>, e.g. <code>linkedTo=4&amp;targetEntry=789</code> would return entries linked to entry #789 in external resource #4.</td>
+				</tr>
+				<tr>
+					<td><code>targetNode</code></td>
+					<td>Returns entries linked to a specified subentry node in an external resource (specified by node ID). Usually used in conjunction with <code>linkedTo</code> and <code>targetEntry</code>, e.g. <code>linkedTo=4&amp;targetEntry=789&amp;targetNode=12345</code> would return entries linked to subentry #12345 in entry #789 in external resource #4. To return only results that are linked at entry level (not subentry-level), you can explicitly pass <code>targetNode=null</code>.</td>
+				</tr>
+				</tbody>
+			</table>
+		</p>
+
+		<h4>Pagination</h4>
+		<p>
+			Responses are 'paged', with a maximum of 20 results per page. If the total number of results is more than 20, only results 1-20 are returned by default. You can request the next 20 by supplying a <code>page</code> parameter, e.g. <code>page=2</code> to return results 21-40, <code>page=3</code> to return results 41-60, etc. 
+		</p>
+
+		<h4>Response</h4>
+		<p>
+			Each response to a search request has the following fields:
+			<table class="table table-bordered">
+				<tbody>
+				<tr>
+					<td><code>numResults</code></td>
+					<td>The total number of entry results returned.</td>
+				</tr>
+				<tr>
+					<td><code>pageNum</code></td>
+					<td>The page number of the current page of results.</td>
+				</tr>
+				<tr>
+					<td><code>totalPages</code></td>
+					<td>The total number of pages in the results set.</td>
+				</tr>
+				<tr>
+					<td><code>pageSize</code></td>
+					<td>The number of results shown per page (should always be '20').</td>
+				</tr>
+				<tr>
+					<td><code>rankFirstResult</code></td>
+					<td>The rank order of the first result on the current page (e.g. on page 2 this would be '21').</td>
+				</tr>
+				<tr>
+					<td><code>rankFirstResult</code></td>
+					<td>The rank order of the last result on the current page (e.g. on page 2 this would be '40').</td>
+				</tr>
+				<tr>
+					<td><code>results</code></td>
+					<td>The results list itself (empty if no results for found).</td>
+				</tr>
+				</tbody>
+			</table>
+		</p>
+		<p>
+			Each result in the results list takes the following form:
+			<table class="table table-bordered">
+				<tbody>
+				<tr>
+					<td><code>id</code></td>
+					<td>The entry ID.</td>
+				</tr>
+				<tr>
+					<td><code>lemma</code></td>
+					<td>The entry lemma or label.</td>
+				</tr>
+				<tr>
+					<td><code>wordclasses</code></td>
+					<td>A list of the entry's wordclasses (using <a href="http://www.comp.leeds.ac.uk/ccalas/tagsets/upenn.html" target="ext">Penn codes</a>, e.g. 'NN', 'VB', 'JJ').</td>
+				</tr>
+				<tr>
+					<td><code>links</code></td>
+					<td>A list of the external resources (dictionaries, etc.) to which the entry is linked.</td>
+				</tr>
+				</tbody>
+			</table>
+		</p>
+		<p>
+			If you don't want the dictionary links, you can omit these from the response by including a <code>includeLinks=false</code> parameter in the request.
+		</p>
+
+		<h4>Examples</h4>
+		<p>
+			Simple lemma search:<br/><a href="{% url 'gel_api' action='search' %}?lemma=kiss&prettyPrint=true"><code>{% url 'gel_api' action='search' %}?lemma=kiss&amp;prettyPrint=true</code></a>
+		</p>
+		<p>
+			Adverb (RB) entries in the range ki-kuzz:<br/><a href="{% url 'gel_api' action='search' %}?lemma=ki-kuzz&wordclass=RB&prettyPrint=true"><code>{% url 'gel_api' action='search' %}?lemma=ki-kuzz&amp;wordclass=RB&amp;prettyPrint=true</code></a>
+		</p>
+		<p>
+			Third page of results for kn*:<br/><a href="{% url 'gel_api' action='search' %}?lemma=kn*&page=3&prettyPrint=true"><code>{% url 'gel_api' action='search' %}?lemma=kn*&amp;page=3&amp;prettyPrint=true</code></a>
+		</p>
+		<p>
+			Results for kn* without dictionary links:<br/><a href="{% url 'gel_api' action='search' %}?lemma=kn*&includeLinks=false&prettyPrint=true"><code>{% url 'gel_api' action='search' %}?lemma=kn*&amp;includeLinks=false&amp;prettyPrint=true</code></a>
+		</p>
+		<p>
+			Obsolete entries beginning with kn*:<br/><a href="{% url 'gel_api' action='search' %}?lemma=kn*&status=obs&prettyPrint=true"><code>{% url 'gel_api' action='search' %}?lemma=kn*&amp;status=obs&amp;prettyPrint=true</code></a>
+		</p>
+		<p>
+			Entries beginning with kn* that are linked to NOAD (ID=3):<br/><a href="{% url 'gel_api' action='search' %}?lemma=kn*&linkedTo=3&prettyPrint=true"><code>{% url 'gel_api' action='search' %}?lemma=kn*&amp;linkedTo=3&amp;prettyPrint=true</code></a>
+		</p>
+		<p>
+			Entries edited or created in the last 24 hours:<br/><a href="{% url 'gel_api' action='search' %}?lastEdited=1440&prettyPrint=true"><code>{% url 'gel_api' action='search' %}?lastEdited=1440&amp;prettyPrint=true</code></a>
+		</p>
+		<p>
+			Entries linked to OED entry #104025 (<em>knight</em>):<br/><a href="{% url 'gel_api' action='search' %}?linkedTo=1&targetEntry=104025&prettyPrint=true"><code>{% url 'gel_api' action='search' %}?linkedTo=1&amp;targetEntry=104025&amp;prettyPrint=true</code></a>
+		</p>
+		<p>
+			Entries linked to OED subentry #104025-39997687 (<em>knight marshal</em>):<br/><a href="{% url 'gel_api' action='search' %}?linkedTo=1&targetEntry=104025&targetNode=39997687&prettyPrint=true"><code>{% url 'gel_api' action='search' %}?linkedTo=1&amp;targetEntry=104025&amp;targetNode=39997687&amp;prettyPrint=true</code></a>
+		</p>
+		<p>
+			Entries linked to OED entry #104025 (<em>knight</em>) but not to any subentries:<br/><a href="{% url 'gel_api' action='search' %}?linkedTo=1&targetEntry=104025&targetNode=null&prettyPrint=true"><code>{% url 'gel_api' action='search' %}?linkedTo=1&amp;targetEntry=104025&amp;targetNode=null&amp;prettyPrint=true</code></a>
+		</p>
+	</div>
+
+
+	<div class="well" id="getentry">
+		<h3>Getentry</h3>
+		<p>
+			Getentry requests take the form <code>.../api/getentry?parameters</code>
+		</p>
+
+		<h4>Parameters</h4>
+		<p>
+			<table class="table table-bordered">
+				<tbody>
+				<tr>
+					<td><code>id</code></td>
+					<td>[Required] The ID of the entry to be returned. (Note that this is the ID of the entry record in GEL2, not the ID of any external dictionary entry to which it may be linked.)</td>
+				</tr>
+				<tr>
+					<td><code>includeFrequency</code></td>
+					<td>[Boolean; False by default] If True, includes full frequency table data to the entry as a whole, for each wordclass, and for each type (if types are shown)</td>
+				</tr>
+				<tr>
+					<td><code>includeTypes</code></td>
+					<td>[Boolean; False by default] If True, lists data for each child Type record under each of the entry's wordclasses.</td>
+				</tr>
+				<tr>
+					<td><code>includeLinks</code></td>
+					<td>[Boolean; False by default] If True, lists links to external resources.</td>
+				</tr>
+				<tr>
+					<td><code>includeTopics</code></td>
+					<td>[Boolean; True by default] If True, lists topics relevant to the entry.</td>
+				</tr>
+				<tr>
+					<td><code>format</code></td>
+					<td>['json' by default] If set to 'chart', returns a frequency chart for the entry, as a .png image.</td>
+				</tr>
+				</tbody>
+			</table>
+		</p>
+
+		<h4>Response</h4>
+		<p>
+			Each successful response to a <code>getentry</code> request has the following data:
+			<table class="table table-bordered">
+				<tbody>
+				<tr>
+					<td><code>id</code></td>
+					<td>The entry record ID.</td>
+				</tr>
+				<tr>
+					<td><code>fields.lemma</code></td>
+					<td>The entry lemma or label.</td>
+				</tr>
+				<tr>
+					<td><code>fields.definition</code></td>
+					<td>The entry definition, if any (the definition of the first wordclass).</td>
+				</tr>
+				<tr>
+					<td><code>fields.obsolete</code></td>
+					<td>True if the entry is obsolete (i.e. all wordclasses are obsolete); False otherwise.</td>
+				</tr>
+				<tr>
+					<td><code>fields.soundfile_uk</code></td>
+					<td>Reference to UK soundfile, if any.</td>
+				</tr>
+				<tr>
+					<td><code>fields.soundfile_us</code></td>
+					<td>Reference to US soundfile, if any.</td>
+				</tr>
+				<tr>
+					<td><code>fields.frequency</code></td>
+					<td>Average frequency in the 1970-2010 period. (Summed from frequencies of individual types; rounded to to 2 significant digits).</td>
+				</tr>
+				<tr>
+					<td><code>wordclasses</code></td>
+					<td>List of the wordclass records contained in the entry (see below).</td>
+				</tr>
+				<tr>
+					<td><code>frequencyTable</code></td>
+					<td>Table frequency data, summed from frequencies of individual types. (Omitted unless <code>includeFrequency=true</code> has been included in the request.)</td>
+				</tr>
+				<tr>
+					<td><code>links</code></td>
+					<td>List of links to external resources. (Omitted unless <code>includeLinks=true</code> has been included in the request.)</td>
+				</tr>
+				<tr>
+					<td><code>topics</code></td>
+					<td>List of any topics. (Omitted if <code>includeTopics=false</code> has been included in the request.)</td>
+				</tr>
+				</tbody>
+			</table>
+			Any <a href="{% url 'gel_custom' %}">custom fields</a> defined for entry records will also be included in the form <code>fields.customFieldName</code>. E.g. a custom field with the name 'wikipedia' would be included as <code>fields.wikipedia</code>.
+		</p>
+		<p>
+			Each wordclass listed in the entry's <code>wordclasses</code> field include the following data:
+			<table class="table table-bordered">
+				<tbody>
+				<tr>
+					<td><code>id</code></td>
+					<td>The wordclass record ID.</td>
+				</tr>
+				<tr>
+					<td><code>fields.penn</code></td>
+					<td>The Penn code for the wordclass.</td>
+				</tr>
+				<tr>
+					<td><code>fields.definition</code></td>
+					<td>The wordclass definition, if any.</td>
+				</tr>
+				<tr>
+					<td><code>fields.obsolete</code></td>
+					<td>True if the wordclass is obsolete; False otherwise.</td>
+				</tr>
+				<tr>
+					<td><code>fields.frequency</code></td>
+					<td>Average frequency in the 1970-2010 period. (Summed from frequencies of individual types; rounded to to 2 significant digits).</td>
+				</tr>
+				<tr>
+					<td><code>types</code></td>
+					<td>List of type records contained in the wordclass. (Omitted unless <code>includeTypes=true</code> has been included in the request.)</td>
+				</tr>
+				<tr>
+					<td><code>frequencyTable</code></td>
+					<td>Table frequency data, summed from frequencies of individual types. (Omitted unless <code>includeFrequency=true</code> has been included in the request.)</td>
+				</tr>
+				</tbody>
+			</table>
+			Any <a href="{% url 'gel_custom' %}">custom fields</a> defined for wordclass records will also be included in the form <code>fields.customFieldName</code>.
+		</p>
+
+		<h4>Examples</h4>
+		<p>
+			Return summary data for entry #2656547:<br/><a href="{% url 'gel_api' action='getentry' %}?id=2656547&prettyPrint=true"><code>{% url 'gel_api' action='getentry' %}?id=2656547&amp;prettyPrint=true</code></a>
+		</p>
+		<p>
+			Return complete data for entry #2656547:<br/><a href="{% url 'gel_api' action='getentry' %}?id=2656547&includeFrequency=true&includeTypes=true&includeLinks=true&prettyPrint=true"><code>{% url 'gel_api' action='getentry' %}?id=2656547&amp;includeFrequency=true&amp;includeTypes=true&amp;includeLinks=true&amp;prettyPrint=true</code></a>
+		</p>
+	</div>
+
+
+	<div class="well" id="findentry">
+		<h3>Findentry</h3>
+		<p>
+			Findentry requests take the form <code>.../api/findentry?parameters</code>
+		</p>
+		<p>
+			<code>findentry</code> effectively chains <code>search</code> and <code>getentry</code> in a single operation: it searches for entries matching specified search terms, then returns entry data for the first result (if any).
+		</p>
+		<p>
+			<code>findentry</code> is most useful for queries which are expected to return a single result, since this result will be returned in the form of full entry. Typically, <code>findentry</code> is used when you know the ID of an entry in a dictionary resource, and want to retrieve the corresponding GEL2 entry. In this case, the request will use <code>linkedTo</code>, <code>targetEntry</code>, and <code>targetNode</code> parameters (see examples below).
+		</p>
+		<p>
+			<code>findentry</code> is less useful for queries which may return multiple results. For example, a lemma-based query (e.g. <code>?lemma=keel</code>) may return several homographs, in arbitrary order. Since <code>findentry</code> always returns the <em>first</em> result, the entry returned would not be strictly predictable.
+		</p>
+		<p>
+			If the search component of a <code>findentry</code> request returns no results, the response will be empty, with an error message in the metadata.
+		</p>
+
+		<h4>Parameters</h4>
+		<p>
+			All the parameters used in <code>search</code> and <code>getentry</code> requests can be combined in a <code>findentry</code> request:
+			<ul>
+				<li>parameters from <code>search</code> are used to specify the search;</li>
+				<li>parameters from <code>getentry</code> are used to control the information returned in the response.</li>
+			</ul>
+			The <code>id</code> parameter used in a regular <code>getentry</code> request is of course not applicable here: if you already know the record ID, you should use a <code>getentry</code> request directly.
+		</p>
+
+		<h4>Response</h4>
+		<p>
+			The response to a <code>findentry</code> request is the same as for a <code>getentry</code> request. 
+		</p>
+
+		<h4>Examples</h4>
+		<p>
+			Return summary data for the GEL2 entry linked to OED entry #104025 (<em>knight</em>):<br/><a href="{% url 'gel_api' action='findentry' %}?linkedTo=1&targetEntry=104025&targetNode=null&prettyPrint=true"><code>{% url 'gel_api' action='findentry' %}?linkedTo=1&amp;targetEntry=104025&amp;targetNode=null&amp;prettyPrint=true</code></a>
+		</p>
+		<p>
+			Return summary data for the GEL2 entry linked to OED subentry #104025-39997687 (<em>knight marshal</em>):<br/><a href="{% url 'gel_api' action='findentry' %}?linkedTo=1&targetEntry=104025&targetNode=39997687&prettyPrint=true"><code>{% url 'gel_api' action='findentry' %}?linkedTo=1&amp;targetEntry=104025&amp;targetNode=39997687&amp;prettyPrint=true</code></a>
+		</p>
+		<p>
+			Return complete data for the GEL2 entry linked to OED entry #104025 (<em>knight</em>):<br/><a href="{% url 'gel_api' action='findentry' %}?linkedTo=1&targetEntry=104025&targetNode=null&includeFrequency=true&includeTypes=true&includeLinks=true&prettyPrint=true"><code>{% url 'gel_api' action='findentry' %}?linkedTo=1&amp;targetEntry=104025&amp;targetNode=null&amp;includeFrequency=true&amp;includeTypes=true&amp;includeLinks=true&amp;prettyPrint=true</code></a>
+		</p>
+	</div>
+
+
+	<div class="well" id="metadata">
+		<h3>API metadata</h3>
+		<p>
+			As well as the fields listed above, every API response includes a <code>_META</code> field which gives diagnostic information about the API request itself. <code>_META</code> has the following fields:
+			<table class="table table-bordered">
+				<tbody>
+				<tr>
+					<td><code>_META.success</code></td>
+					<td>[Boolean] True if the request was successful; False if the request failed. (Note that a search which correctly returns zero results is counted as <code>_META.success=true</code>.)</td>
+				</tr>
+				<tr>
+					<td><code>_META.error</code></td>
+					<td>If <code>_META.success=false</code>, gives an error message indicating why the request failed.</td>
+				</tr>
+				<tr>
+					<td><code>_META.uri</code></td>
+					<td>The URI used to make the API request.</td>
+				</tr>
+				<tr>
+					<td><code>_META.params</code></td>
+					<td>A list of the request's parameters, and their values.</td>
+				</tr>
+				</tbody>
+			</table>
+		</p>
+	</div>
+{% endblock %}

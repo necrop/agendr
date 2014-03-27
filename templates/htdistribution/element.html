@@ -1,0 +1,79 @@
+{% extends "htdistribution/base.html" %}
+{% load htdistribution_extras %}
+
+{% block page_title %}
+{{ element.label }}
+{% endblock %}
+
+{% block pagecontent %}
+	<div class="hero-unit subhero">
+		<h2>
+			{{ element.label }}
+			{% include 'htdistribution/includes/oed_link.html' with oed_url=element.oed_url invert='false' %}
+		</h2>
+		{{ element.size }} senses
+	</div>
+
+	<div class="navbar">
+		<div class="navbar-inner">
+			<ul class="nav">
+			<li {% if view == 'tables' %}class="active"{% endif %}><a href="?view=tables"><i class="icon-list"></i> tables</a></li>
+			<li {% if view == 'scatter' %}class="active"{% endif %}><a href="?view=scatter"><i class="icon-picture"></i> scatter</a></li>
+			<li {% if view == 'stack2' %}class="active"{% endif %}><a href="?view=stack2"><i class="icon-picture"></i> stack (l2)</a></li>
+			<li {% if view == 'stack3' %}class="active"{% endif %}><a href="?view=stack3"><i class="icon-picture"></i> stack (l3)</a></li>
+			</ul>
+		</div>
+	</div>
+
+
+	<div class="row">
+		{% if view == 'scatter' %}
+			{% include 'htdistribution/includes/plotframe.html' with type='treescatter' idlist=element.id name='elementChart' %}
+			<p>Each data point represents a sense or subentry
+			{% if element.type == 'author' %}with a quotation from {{ element.label }}.{% endif %}
+			{% if element.type == 'language' %}in an entry with an etymology from {{ element.label }}.{% endif %}
+			{% if element.type == 'compound' %}with a lemma that includes the word '{{ element.label }}'.{% endif %}
+			{% if element.size > 10000 %}
+				The chart shows 10,000 data points randomly sampled from a total of {{ element.size }} data points.
+			{% endif %}
+			Higher-density areas are tinted in orange.</p>
+		{% endif %}
+
+		{% if view == 'stack2' %}
+			{% include 'htdistribution/includes/plotframe.html' with type='treestacksize2' idlist=element.id name='elementChart' %}
+		{% endif %}
+
+		{% if view == 'stack3' %}
+			{% include 'htdistribution/includes/plotframe.html' with type='treestacksize3' idlist=element.id name='elementChart' %}
+		{% endif %}
+	</div>
+
+	{% if view == 'tables' %}
+		<div class="row">
+			<h3>Top 10 thesaurus classes for {{ element.label }}</h3>
+			{% include 'htdistribution/includes/ranking_table.html' with label=element.label mode='density (level 2)'  ranking=rankings.density.two %}
+			{% include 'htdistribution/includes/ranking_table.html' with label=element.label mode='density (level 3)' ranking=rankings.density.three %}
+			{% include 'htdistribution/includes/ranking_table.html' with label=element.label mode='fraction (level 2)' ranking=rankings.fraction.two %}
+			{% include 'htdistribution/includes/ranking_table.html' with label=element.label mode='fraction (level 3)' ranking=rankings.fraction.three %}
+		</div>
+
+		<div class="row">
+			<h3>Distribution metrics</h3>
+			<ul>
+				<li>Level 2: &#x03c7;<sup>2</sup> = {{ element.chistat2|significantDigits:3 }} with p-value = {{ element.pvalue2|significantDigits:2 }}</li>
+				<li>Level 3: &#x03c7;<sup>2</sup> = {{ element.chistat3|significantDigits:3 }} with p-value = {{ element.pvalue3|significantDigits:2 }}</li>
+			</ul>
+		</div>
+	{% endif %}
+
+{% endblock %}
+
+
+{% block extrascript %}
+
+	$('a#elementChartFullscreen').click( function(event) {
+		$('#elementChart').toggleFullScreen();
+		event.preventDefault() ;
+	}) ;
+
+{% endblock %}

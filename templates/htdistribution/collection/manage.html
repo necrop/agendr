@@ -1,0 +1,54 @@
+{% extends "htdistribution/base.html" %}
+
+{% block page_title %}
+manage collections
+{% endblock %}
+
+{% block pagecontent %}
+<div class="hero-unit subhero">
+	<h2>Manage collections</h2>
+</div>
+
+	<table class="table table-bordered table-hover">
+		<tbody>
+			{% for c in collections %}
+				<tr class="paddedCell">
+					<form action="{% url 'htdistribution_collectionupdate' %}" method="post">
+					{% csrf_token %}
+					<input type="hidden" name="id" value="{{ c.id }}"/>
+					<td>
+						<h4><a href="{{ c.get_absolute_url }}">{{ c.label }}</a></h4>
+						{% if c.description %}
+							<p>{{ c.description }}</p>
+						{% endif %}
+					</td>
+					<td>
+						{% for e in c.elements.all %}
+							<div><input type="checkbox" checked="checked" name="element_{{ e.id }}"/> &nbsp;<a href="{{ e.get_absolute_url }}">{{ e.label }}</a></div>
+						{% endfor %}
+					</td>
+					<td>
+						<div>Collection name: <input type="text" name="label" value="{{ c.label }}"/></div>
+						<div>
+							Add more {{ c.type }}s:
+							<select multiple="multiple" name="additions">
+								{% for e in c.complement %}
+									<option value="{{ e.id }}">{{ e.label }}</option>
+								{% endfor %}
+							</select>
+						</div>
+					</td>
+					<td>
+						<div class="btn-group">
+							<button class="btn btn-primary btn-small" type="submit">update</button>
+							<a class="btn btn-danger btn-small" href="{% url 'htdistribution_collectiondelete' id=c.id %}">delete</a>
+						</div>
+					</td>
+					</form>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+
+{% endblock %}

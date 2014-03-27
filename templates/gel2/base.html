@@ -1,0 +1,146 @@
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>GEL2: {{ page_title }}</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="">
+		<meta name="author" content="">
+
+		<link href="/static/common/bootstrap/css/bootstrap.css" rel="stylesheet">
+		<link href="/static/common/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+		<link href="/static/gel2/css/basestyle.css" rel="stylesheet">
+		{% block extralinks %}
+		{% endblock %}
+		<style type="text/css">
+			{% block extrastyle %}
+			{% endblock %}
+		</style>
+
+		<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+		<!--[if lt IE 9]>
+			<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="navbar navbar-inverse navbar-fixed-top">
+			<div class="navbar-inner">
+				<div class="container">
+					<button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="brand" href="{% url 'gel_home' %}">GEL2</a>
+					<div class="nav-collapse collapse">
+						<ul class="nav">
+							<li><a href="{% url 'gel_home' %}">Home</a></li>
+							<li><a href="{% url 'gel_info' page='about' %}">About</a></li>
+							<li><a href="{% url 'gel_search' %}">Search</a></li>
+							<li class="dropdown">
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown">History <b class="caret"></b></a>
+								<ul class="dropdown-menu">
+									<li class="nav-header">Entries</li>
+									{% if history.entries %}
+										{% for h in history.entries %}
+											<li><a href="{% url 'gel_entry' id=h.0 %}">{{ h.1 }} &nbsp;&nbsp; [{{ h.0 }}]</a></li>
+										{% endfor %}
+									{% else %}
+										<li><a href="#">[empty]</a></li>
+									{% endif %}
+									<li class="divider"></li>
+									<li class="nav-header">Searches</li>
+									{% if history.searches %}
+										{% for h in history.searches %}
+											<li><a href="{{ h.0 }}">{{ h.1 }}</a></li>
+										{% endfor %}
+									{% else %}
+										<li><a href="#">[empty]</a></li>
+									{% endif %}
+								</ul>
+							</li>
+							<li class="dropdown">
+								<a href="#" class="dropdown-toggle" data-toggle="dropdown">More <b class="caret"></b></a>
+								<ul class="dropdown-menu">
+									<li class="nav-header">Tools</li>
+									<li><a href="{% url 'gel_editor' action='add' level='root' id=0 %}">Add entry</a></li>
+									<li><a href="{% url 'gel_imports' %}">Import jobs</a></li>
+									<li><a href="{% url 'gel_resources' %}">Resources</a></li>
+									<li><a href="{% url 'gel_custom' %}">Custom fields</a></li>
+									<li><a href="{% url 'gel_taxonomy' %}">Topic taxonomy</a></li>
+									<li><a href="{% url 'gel_validate' %}">Validation</a></li>
+									<li class="divider"></li>
+									<li class="nav-header">Information</li>
+									<li><a href="{% url 'gel_info' page='help' %}">Help</a></li>
+									<li><a href="{% url 'gel_info' page='api' %}">API</a></li>
+									<li><a href="{% url 'gel_info' page='importing' %}">Importing data</a></li>
+									<li><a href="{% url 'gel_info' page='documents' %}">Documents</a></li>
+									<li><a href="{% url 'gel_statistics' %}">Statistics</a></li>
+									<li><a href="{% url 'gel_info' page='technical' %}">Technical</a></li>
+									<li class="divider"></li>
+									<li><a href="{% url 'gel_random' %}">Random entry</a></li>
+								</ul>
+							</li>
+							<li><a href="{% url 'gel_info' page='help' %}">Help</a></li>
+						</ul>
+						<form class="navbar-form pull-right" action="{% url 'gel_submitsearch' %}" method="post">
+							<a data-content="Enter query in downcased form, without diacritics or hyphens. You can give a simple lemma, e.g. 'knight', a prefix with wildcard, e.g. 'kn*', or a range, e.g. 'kn-kozz'." rel="popover-below" data-toggle="popover" href="#">
+								<i class="icon-question-sign icon-white"></i>
+							</a>&nbsp;
+							{% csrf_token %}
+							<input class="span2" type="text" name="lemma" {% if query_term %}value="{{ query_term }}"{% endif %}/>
+							<button type="submit" class="btn btn-primary" title="quick search">
+								<i class="icon-search icon-white"></i>
+							</button>
+						</form>
+					</div><!--/.nav-collapse -->
+				</div>
+			</div>
+		</div>
+
+		<div class="container">
+			{% block pagecontent %}
+			{% endblock %}
+
+			<hr>
+			<footer>
+				<p>GEL2 prototype 1.8 &nbsp;&nbsp; [26 April 2013]</p>
+			</footer>
+		</div> <!-- /container -->
+
+		<!-- hidden_elements: HTML for modals, etc., goes here -->
+		{% block hidden_elements %}
+		{% endblock %}
+		<!-- /hidden_elements -->
+
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script src="/static/common/bootstrap/js/bootstrap.min.js"></script>
+		<script>
+			$(document).ready( function() {
+
+				/* hide edit buttons */
+				$('div.hoverButtons').css('visibility', 'hidden');
+
+				/* display hidden edit buttons when hovering over the parent block*/
+				$('.buttonContainer').hover(
+					function() {
+						$(this).children('div.hoverButtons').css('visibility', 'visible');
+					},
+					function() {
+						$(this).children('div.hoverButtons').css('visibility', 'hidden');
+					}
+				);
+
+				/* popovers */
+				$("a[rel='popover']").popover({trigger: 'hover', placement: 'right'});
+				$("a[rel='popover-below']").popover({trigger: 'hover', placement: 'bottom'});
+
+				/* any page-specific scripts go here */
+				{% block extrascript %}
+				{% endblock %}
+			});
+		</script>
+	</body>
+</html>

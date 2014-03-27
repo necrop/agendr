@@ -1,0 +1,63 @@
+{% extends "htdistribution/base.html" %}
+
+{% block page_title %}
+Results for {{ query }}
+{% endblock %}
+
+{% block pagecontent %}
+	<div class="hero-unit subhero">
+		<h2>
+			Results for '{{ query }}'
+		</h2>
+	</div>
+
+	<div class="row">
+		<div class="span8 offset1">
+			<h3>Elements</h3>
+			{% if results.elements %}
+				<table class="table table-bordered table-hover">
+					<thead>
+						<th>Label</th>
+						<th>Type</th>
+					</thead>
+					<tbody>
+						{% for r in results.elements %}
+							<tr>
+								<td><a href="{{ r.get_absolute_url }}">{{ r.label }}</a></td>
+								<td>{{ r.type }}</td>
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			{% else %}
+				<p>No results found for '{{ query }}'</p>
+			{% endif %}
+		</div>
+	</div>
+
+	<div class="row">
+		<div class="span8 offset1">
+			<h3>Collections</h3>
+			{% if results.collections %}
+				<table class="table table-bordered table-hover">
+					<thead>
+						<th>Label</th>
+						<th>Members</th>
+					</thead>
+					<tbody>
+						{% for r in results.collections %}
+							<tr>
+								<td><a href="{{ r.get_absolute_url }}">{{ r.label }}</a></td>
+								<td>{{ r.members }}</td>
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			{% else %}
+				<p>No results found for '{{ query }}'</p>
+			{% endif %}
+		</div>
+	</div>
+
+{% endblock %}
+

@@ -1,0 +1,27 @@
+{% extends "gel2/base.html" %}
+
+{% block extralinks %}
+<link href="/static/gel2/css/sidenav.css" rel="stylesheet">
+{% endblock %}
+
+{% block pagecontent %}
+	<div class="hero-unit subhero">
+		<h1>GEL2: {% block header_title %}help{% endblock %}</h1>
+	</div>
+
+<div class="container">
+	<div class="row">
+		<div class="span3 bs-docs-sidebar">
+			<ul class="nav nav-list bs-docs-sidenav affix">
+				{% block navlist %}
+				{% endblock %}
+			</ul>
+		</div>
+
+		<div class="span6 helptext">
+			{% block textcontent %}
+			{% endblock %}
+		</div>
+	</div>
+</div>
+{% endblock %}

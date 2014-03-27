@@ -1,0 +1,33 @@
+body {
+	padding-top: 60px;
+	padding-bottom: 40px;
+}
+
+.navbar-inverse .navbar-inner {
+	background-color: #003399;
+	background-image: none;
+}
+
+
+.hero-unit {
+	background-color: #ACD1E9; /*#003399;*/
+	color: black;
+}
+
+.subhero {
+	padding-top: 20px;
+	padding-bottom: 20px;
+}
+
+tr.paddedCell td {
+	padding-top: 2em;
+	padding-bottom: 2em;
+}
+
+.scroll_list {
+	height: 20em;
+	padding: 5px;
+	overflow: auto;
+	border: 1px solid #ccc
+}
+

@@ -1,0 +1,28 @@
+{% load htdistribution_extras %}
+
+	<div class="span12 well">
+	<h4>Ranked by {{ mode }}</h4>
+
+	<table class="table table-bordered table-hover">
+		<thead>
+			<tr>
+				<th>#</th>
+				<th>Thesaurus class</th>
+				<th>'{{ label|capfirst }}' senses</th>
+				<th>Fraction of all '{{ label|capfirst }}' senses</th>
+				<th>Density</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for dp in ranking %}
+				<tr>
+					<td>{{ forloop.counter }}</td>
+					<td>{{ dp.thesaurusclass.breadcrumb }} <span style="color: gray">({{ dp.thesaurusclass.size }})</span>{% include 'htdistribution/includes/oed_link.html' with oed_url=dp.thesaurusclass.oed_url %}</td>
+					<td>{{ dp.branchtotal }}</td>
+					<td>{{ dp.fraction|significantDigits:2 }}</td>
+					<td>{{ dp.density|significantDigits:2 }}</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+	</div>

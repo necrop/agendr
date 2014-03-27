@@ -1,0 +1,73 @@
+{% load htdistribution_extras %}
+
+<form action="{% url 'htdistribution_collectionsubmit' %}" method="post">
+	{% csrf_token %}
+
+	<table class="table table-bordered table-hover">
+		<thead>
+			<tr>
+				<th>#</th>
+				<th></th>
+				<th>
+					Name {% include 'htdistribution/includes/sortlinks.html' with sortorder='alphasort' mode=mode %}
+				</th>
+				<th>
+					Year {% include 'htdistribution/includes/sortlinks.html' with sortorder='year' mode=mode %}
+				</th>
+				{% if setname == 'author' %}
+					<th>
+						Gender {% include 'htdistribution/includes/sortlinks.html' with sortorder='gender' mode=mode %}
+					</th>
+				{% endif %}
+				<th>
+					Senses {% include 'htdistribution/includes/sortlinks.html' with sortorder='size' mode=mode %}
+				</th>
+				<th>
+					&#x03c7;<sup>2</sup> (l2) {% include 'htdistribution/includes/sortlinks.html' with sortorder='chistat2' mode=mode %}
+				</th>
+				<th>
+					&#x03c7;<sup>2</sup> (l3) {% include 'htdistribution/includes/sortlinks.html' with sortorder='chistat3' mode=mode %}
+				</th>
+			</tr>
+		</thead>
+		<tbody>
+			{% for e in elements %}
+				<tr>
+					<td>
+						{{ forloop.counter }}
+					</td>
+					<td>
+						<input type="checkbox" name="element_{{ e.id }}"/>
+					</td>
+					<td>
+						<span style="font-size: 1.5em;"><a href="{{ e.get_absolute_url }}">{{ e.label }}</a>
+						{% include 'htdistribution/includes/oed_link.html' with oed_url=e.oed_url %}
+					</td>
+					<td>
+						{{ e.year }}
+					</td>
+					{% if setname == 'author' %}
+						<td>
+							{{ e.gender }}
+						</td>
+					{% endif %}
+					<td>
+						{{ e.size }}
+					</td>
+					<td>
+						{{ e.chistat2|significantDigits:2 }}
+					</td>
+					<td>
+						{{ e.chistat3|significantDigits:2 }}
+					</td>
+				</tr>
+			{% endfor %}
+		</tbody>
+	</table>
+
+	<div class="span3 well">
+		<input type="hidden" name="setname" value="{{ setname }}"/>
+		<p>Make a new collection from a subset of these {{ setname }}s: select two or more from the list above, then click:</p>
+		<button type="submit" class="btn-small btn-primary">make collection</button>
+	</div>
+</form>
